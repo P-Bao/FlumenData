@@ -49,3 +49,20 @@ Toda a documentação é mantida em inglês e português dentro do diretório /d
 
 ---
 🧠 FlumenData — Lakehouse moderno, aberto e reprodutível para todos.
+
+---
+
+## ✅ Validação do Tier 0 (PostgreSQL, Valkey, MinIO)
+
+Após `make init`, valide cada serviço com:
+
+```bash
+# PostgreSQL
+make health-postgres && make test-postgres && make persist-postgres
+
+# Valkey
+make config-valkey && make health-valkey && make test-valkey && make persist-valkey
+
+# MinIO
+make config-minio && make health-minio && make test-minio && make persist-minio
+```

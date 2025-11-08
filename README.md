@@ -47,3 +47,20 @@ FlumenData/
 All documentation is maintained in both English and Portuguese under /docs/.
 
 🧠 FlumenData — Open, reproducible, and modern Lakehouse for everyone.
+
+---
+
+## ✅ Tier 0 Validation (PostgreSQL, Valkey, MinIO)
+
+After `make init`, you can validate each service with:
+
+```bash
+# PostgreSQL
+make health-postgres && make test-postgres && make persist-postgres
+
+# Valkey
+make config-valkey && make health-valkey && make test-valkey && make persist-valkey
+
+# MinIO
+make config-minio && make health-minio && make test-minio && make persist-minio
+```
