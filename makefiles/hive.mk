@@ -20,16 +20,7 @@ health-hive:
 
 # Initialize Hive databases
 init-hive:
-	@echo "[hive:init] Creating lakehouse databases..."
-	@echo "$(LAKEHOUSE_DATABASES)" | tr ',' '\n' | while read -r db; do \
-		[ -z "$$db" ] && continue; \
-		echo "[hive:init]   Creating database: $$db"; \
-		docker exec flumen_spark_master /opt/spark/bin/spark-sql \
-			--master spark://spark-master:7077 \
-			-e "CREATE DATABASE IF NOT EXISTS $$db LOCATION 's3a://$(MINIO_BUCKET)/warehouse/$$db.db'" \
-			2>&1 | grep -v "INFO\|WARN" || true; \
-	done
-	@echo "[hive:init] ✓ Databases initialized"
+	@echo "[hive:init] Metastore ready. Database creation handled via JupyterLab (see init-jupyterlab)."
 
 # Verify Hive Metastore setup
 verify-hive:
@@ -38,11 +29,31 @@ verify-hive:
 	@echo "$(BLUE)════════════════════════════════════════════════$(RESET)"
 	@echo ""
 	@echo "$(YELLOW)📊 Databases:$(RESET)"
-	@docker exec flumen_spark_master /opt/spark/bin/spark-sql \
+	@TMP_FILE="$$(mktemp)"; \
+	( docker exec flumen_spark_master /opt/spark/bin/spark-sql \
 		--master spark://spark-master:7077 \
-		-e "SHOW DATABASES" 2>&1 | grep -v "INFO\|WARN\|Time taken" | tail -n +2 | while read -r db; do \
+		-e "SHOW DATABASES" > "$$TMP_FILE" 2>&1 ) & \
+	CMD_PID=$$!; \
+	MSG="[hive:verify] Downloading dependencies (This may take some time)"; \
+	DOTS=""; \
+	while kill -0 $$CMD_PID 2>/dev/null; do \
+		DOTS="$$DOTS."; \
+		if [ $${#DOTS} -ge 10 ]; then DOTS=""; fi; \
+		printf "\r%s%s" "$$MSG" "$$DOTS"; \
+		sleep 1; \
+	done; \
+	wait $$CMD_PID >/dev/null 2>&1; \
+	STATUS=$$?; \
+	printf "\r%s... done\033[K\n" "$$MSG"; \
+	if [ $$STATUS -ne 0 ]; then \
+		echo "[hive:verify]   Failed to load database list"; \
+		cat "$$TMP_FILE"; \
+		rm -f "$$TMP_FILE"; \
+		exit $$STATUS; \
+	fi; \
+	DB_RAW="$$(cat "$$TMP_FILE")"; rm -f "$$TMP_FILE"; \
+	echo "$$DB_RAW" | grep -v "INFO\|WARN\|Time taken" | tail -n +2 | while read -r db; do \
 		[ -z "$$db" ] && continue; \
-		echo "  📁 $$db"; \
 	done
 	@echo ""
 	@echo "$(YELLOW)🗄️  Metadata Database:$(RESET) PostgreSQL"

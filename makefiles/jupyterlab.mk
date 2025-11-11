@@ -60,6 +60,42 @@ logs-jupyterlab: ## View JupyterLab logs
 	docker compose -f docker-compose.tier2.yml logs -f jupyterlab
 
 # =============================================================================
+# Initialization
+# =============================================================================
+
+.PHONY: init-jupyterlab
+init-jupyterlab: ## Create lakehouse databases from JupyterLab
+	@echo "[jupyterlab:init] Creating lakehouse databases..."
+	@echo "$(LAKEHOUSE_DATABASES)" | tr ',' '\n' | while read -r db; do \
+		[ -z "$$db" ] && continue; \
+		MSG="[jupyterlab:init]   Creating $$db (downloading dependencies this may take some time)"; \
+		TMP_FILE="$$(mktemp)"; \
+		( docker exec flumen_jupyterlab /usr/local/spark/bin/spark-sql \
+			--master spark://spark-master:7077 \
+			-e "CREATE DATABASE IF NOT EXISTS $$db LOCATION 's3a://$(MINIO_BUCKET)/warehouse/$$db.db'" \
+			> "$$TMP_FILE" 2>&1 ) & \
+		CMD_PID=$$!; \
+		DOTS=""; \
+		while kill -0 $$CMD_PID 2>/dev/null; do \
+			DOTS="$$DOTS."; \
+			if [ $${#DOTS} -ge 10 ]; then DOTS=""; fi; \
+			printf "\r%s%s" "$$MSG" "$$DOTS"; \
+			sleep 1; \
+		done; \
+		wait $$CMD_PID >/dev/null 2>&1; \
+		STATUS=$$?; \
+		printf "\r%s... done\033[K\n" "$$MSG"; \
+		if [ $$STATUS -ne 0 ]; then \
+			echo "[jupyterlab:init]   Failed to create $$db"; \
+			cat "$$TMP_FILE"; \
+			rm -f "$$TMP_FILE"; \
+			exit $$STATUS; \
+		fi; \
+		rm -f "$$TMP_FILE"; \
+	done
+	@echo "[jupyterlab:init] ✓ Databases initialized"
+
+# =============================================================================
 # Access & Utilities
 # =============================================================================
 

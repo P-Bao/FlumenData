@@ -91,7 +91,7 @@ init-tier0: health-tier0 init-minio ## Initialize Tier 0 services
 init-tier1: health-tier1 init-hive verify-hive ## Initialize Tier 1 services
 	@echo "$(GREEN)✓ Tier 1 initialized$(RESET)"
 
-init-tier2: health-tier2 ## Initialize Tier 2 services
+init-tier2: health-tier2 init-jupyterlab ## Initialize Tier 2 services
 	@echo "$(GREEN)✓ Tier 2 initialized$(RESET)"
 
 ##@ Health Checks
