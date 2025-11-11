@@ -15,6 +15,7 @@ include makefiles/valkey.mk
 include makefiles/minio.mk
 include makefiles/hive.mk
 include makefiles/spark.mk
+include makefiles/jupyterlab.mk
 
 # Color output
 RED    := \033[0;31m
@@ -32,7 +33,7 @@ help: ## Display this help message
 
 ##@ Initialization
 
-init: banner config up-tier0 init-tier0 up-tier1 init-tier1 health summary ## Complete environment initialization
+init: banner config up-tier0 init-tier0 up-tier1 init-tier1 up-tier2 init-tier2 health summary ## Complete environment initialization
 	@echo "$(GREEN)✓ FlumenData initialized successfully!$(RESET)"
 
 banner:
@@ -48,7 +49,7 @@ banner:
 
 ##@ Configuration
 
-config: config-valkey config-minio config-hive config-spark ## Generate all configuration files
+config: config-valkey config-minio config-hive config-spark config-jupyterlab ## Generate all configuration files
 	@echo "$(GREEN)✓ All configurations generated$(RESET)"
 
 ##@ Docker Compose Management
@@ -63,11 +64,21 @@ up-tier1: ## Start Tier 1 services (Hive Metastore, Spark)
 	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml up -d hive-metastore spark-master spark-worker1 spark-worker2
 	@echo "$(GREEN)✓ Tier 1 services started$(RESET)"
 
-up: up-tier0 up-tier1 ## Start all services
+up-tier2: config-jupyterlab ## Start Tier 2 services (JupyterLab, dbt, MLflow)
+	@echo "$(BLUE)[tier2] Starting analytics & development services...$(RESET)"
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml -f docker-compose.tier2.yml up -d jupyterlab
+	@echo "$(GREEN)✓ Tier 2 services started$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)JupyterLab:$(RESET) http://localhost:8888"
+	@echo "Get token: $(YELLOW)make token-jupyterlab$(RESET)"
+
+up: up-tier0 up-tier1 up-tier2 ## Start all services (Tier 0 + Tier 1 + Tier 2)
 
 down: ## Stop all services
 	@echo "$(YELLOW)Stopping all services...$(RESET)"
-	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml down
+	@$(DC) -f docker-compose.tier2.yml down 2>/dev/null || true
+	@$(DC) -f docker-compose.tier1.yml down 2>/dev/null || true
+	@$(DC) -f docker-compose.tier0.yml down
 	@echo "$(GREEN)✓ All services stopped$(RESET)"
 
 restart: down up ## Restart all services
@@ -80,6 +91,9 @@ init-tier0: health-tier0 init-minio ## Initialize Tier 0 services
 init-tier1: health-tier1 init-hive verify-hive ## Initialize Tier 1 services
 	@echo "$(GREEN)✓ Tier 1 initialized$(RESET)"
 
+init-tier2: health-tier2 ## Initialize Tier 2 services
+	@echo "$(GREEN)✓ Tier 2 initialized$(RESET)"
+
 ##@ Health Checks
 
 health-tier0: health-postgres health-valkey health-minio ## Check Tier 0 health
@@ -88,7 +102,10 @@ health-tier0: health-postgres health-valkey health-minio ## Check Tier 0 health
 health-tier1: health-hive health-spark-master health-spark-workers ## Check Tier 1 health
 	@echo "$(GREEN)✓ Tier 1 healthy$(RESET)"
 
-health: health-tier0 health-tier1 ## Check all services health
+health-tier2: health-jupyterlab ## Check Tier 2 health
+	@echo "$(GREEN)✓ Tier 2 healthy$(RESET)"
+
+health: health-tier0 health-tier1 health-tier2 ## Check all services health
 	@echo "$(GREEN)✓ All services healthy$(RESET)"
 
 ##@ Testing
@@ -99,7 +116,10 @@ test-tier0: test-postgres test-valkey test-minio ## Test Tier 0 services
 test-tier1: test-spark test-hive ## Test Tier 1 services
 	@echo "$(GREEN)✓ Tier 1 tests passed$(RESET)"
 
-test: test-tier0 test-tier1 ## Run all tests
+test-tier2: test-jupyterlab ## Test Tier 2 services
+	@echo "$(GREEN)✓ Tier 2 tests passed$(RESET)"
+
+test: test-tier0 test-tier1 test-tier2 ## Run all tests
 	@echo "$(GREEN)✓ All tests passed$(RESET)"
 
 test-integration: ## Test Delta Lake + Spark + Hive integration
@@ -121,7 +141,10 @@ persist-tier0: persist-postgres persist-valkey persist-minio ## Test Tier 0 data
 persist-tier1: persist-spark ## Test Tier 1 data persistence
 	@echo "$(GREEN)✓ Tier 1 persistence verified$(RESET)"
 
-persist: persist-tier0 persist-tier1 ## Test all data persistence
+persist-tier2: persist-jupyterlab ## Test Tier 2 data persistence
+	@echo "$(GREEN)✓ Tier 2 persistence verified$(RESET)"
+
+persist: persist-tier0 persist-tier1 persist-tier2 ## Test all data persistence
 	@echo "$(GREEN)✓ All data persistence verified$(RESET)"
 
 ##@ Cleanup
@@ -132,7 +155,10 @@ cleanup-tier0: cleanup-postgres cleanup-valkey cleanup-minio ## Cleanup Tier 0 t
 cleanup-tier1: cleanup-spark ## Cleanup Tier 1 test data
 	@echo "$(GREEN)✓ Tier 1 cleanup complete$(RESET)"
 
-cleanup: cleanup-tier0 cleanup-tier1 ## Cleanup all test data
+cleanup-tier2: cleanup-jupyterlab ## Cleanup Tier 2 test data
+	@echo "$(GREEN)✓ Tier 2 cleanup complete$(RESET)"
+
+cleanup: cleanup-tier0 cleanup-tier1 cleanup-tier2 ## Cleanup all test data
 	@echo "$(GREEN)✓ All test data cleaned$(RESET)"
 
 clean: down ## Stop services and remove volumes (WARNING: deletes all data)
@@ -141,6 +167,7 @@ clean: down ## Stop services and remove volumes (WARNING: deletes all data)
 	read REPLY; \
 	case "$$REPLY" in \
 		[Yy]*) \
+			$(DC) -f docker-compose.tier2.yml down -v; \
 			$(DC) -f docker-compose.tier1.yml down -v; \
 			$(DC) -f docker-compose.tier0.yml down -v; \
 			rm -rf config/*; \
@@ -154,13 +181,16 @@ clean: down ## Stop services and remove volumes (WARNING: deletes all data)
 ##@ Logs
 
 logs: ## Show logs for all services
-	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml logs -f
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml -f docker-compose.tier2.yml logs -f
 
 logs-tier0: ## Show logs for Tier 0 services
 	@$(DC) -f docker-compose.tier0.yml logs -f
 
 logs-tier1: ## Show logs for Tier 1 services
 	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml logs -f hive-metastore spark-master spark-worker1 spark-worker2
+
+logs-tier2: ## Show logs for Tier 2 services
+	@$(DC) -f docker-compose.tier2.yml logs -f jupyterlab
 
 logs-postgres: ## Show PostgreSQL logs
 	@$(DC) -f docker-compose.tier0.yml logs -f postgres
@@ -177,7 +207,7 @@ logs-hive: ## Show Hive Metastore logs
 ##@ Service Status
 
 ps: ## Show running containers
-	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml ps
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml -f docker-compose.tier2.yml ps
 
 status: ps ## Alias for ps
 
@@ -196,6 +226,9 @@ summary: ## Show environment summary
 	@echo "$(YELLOW)Tier 1 - Data Platform:$(RESET)"
 	@echo "  • Spark Master    → http://localhost:8080"
 	@echo "  • Hive Metastore  → thrift://localhost:9083"
+	@echo ""
+	@echo "$(YELLOW)Tier 2 - Analytics & Development:$(RESET)"
+	@echo "  • JupyterLab      → http://localhost:8888 (run 'make token-jupyterlab')"
 	@echo ""
 	@echo "$(YELLOW)Lakehouse Architecture:$(RESET)"
 	@echo "  • Catalog       : Hive Metastore (2-level: database.table)"

@@ -1,0 +1,101 @@
+# FlumenData Tier 2: Analytics & Development Platform
+# Services: JupyterLab, dbt, MLflow
+# Dependencies: Tier 0 (PostgreSQL, Valkey, MinIO) + Tier 1 (Hive, Spark)
+
+services:
+  # =============================================================================
+  # JupyterLab - Interactive Development Environment
+  # =============================================================================
+  jupyterlab:
+    container_name: flumen_jupyterlab
+    build:
+      context: .
+      dockerfile: docker/jupyterlab.Dockerfile
+      args:
+        - HADOOP_AWS_VERSION=${HADOOP_AWS_VERSION}
+        - AWS_SDK_BUNDLE_VERSION=${AWS_SDK_BUNDLE_VERSION}
+        - POSTGRESQL_JDBC_VERSION=${POSTGRESQL_JDBC_VERSION}
+        - DELTA_VERSION=${DELTA_VERSION}
+        - SCALA_BINARY_VERSION=${SCALA_BINARY_VERSION}
+    image: flumendata/jupyterlab:spark-4.0.1
+    hostname: jupyterlab
+    ports:
+      - "8888:8888"
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=''
+      - JUPYTER_ALLOW_INSECURE_WRITES=yes
+      - GRANT_SUDO=yes
+      - CHOWN_HOME=yes
+      - CHOWN_HOME_OPTS=-R
+      # Spark configuration
+      - SPARK_HOME=/usr/local/spark
+      - PYSPARK_PYTHON=/usr/bin/python3
+      - PYSPARK_DRIVER_PYTHON=/opt/conda/bin/python
+      # MinIO S3 credentials
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - AWS_ENDPOINT_URL=${MINIO_SERVER_URL}
+      - AWS_REGION=us-east-1
+    volumes:
+      # Notebooks and work directory (persistent)
+      - flumen_jupyter_notebooks:/home/jovyan/work
+      # Spark configuration (runtime override)
+      - ./config/jupyterlab/spark-defaults.conf:/usr/local/spark/conf/spark-defaults.conf:ro
+      # Sample notebooks
+      - ./templates/jupyterlab/notebooks/01_quickstart.ipynb:/home/jovyan/work/01_quickstart.ipynb:ro
+      # Shared data directory (optional)
+      - flumen_shared_data:/home/jovyan/shared:rw
+    depends_on:
+      spark-master:
+        condition: service_healthy
+      hive-metastore:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/lab"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+# =============================================================================
+# Named Volumes
+# =============================================================================
+volumes:
+  # Tier 2 volumes
+  flumen_jupyter_notebooks:
+    name: flumen_jupyter_notebooks
+    driver: local
+
+  flumen_shared_data:
+    name: flumen_shared_data
+    driver: local
+
+  # Reference Tier 0 volumes
+  flumen_postgres_data:
+    external: true
+  flumen_valkey_data:
+    external: true
+  flumen_minio_data:
+    external: true
+
+  # Reference Tier 1 volumes
+  flumen_hive_warehouse:
+    external: true
+  flumen_spark_conf:
+    external: true
+  flumen_spark_ivy:
+    external: true
+  flumen_spark_work:
+    external: true
+  flumen_spark_logs:
+    external: true
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  default:
+    external: true
+    name: flumendata_default

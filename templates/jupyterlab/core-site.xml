@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <!-- S3A MinIO Configuration -->
+    <property>
+        <name>fs.s3a.impl</name>
+        <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
+    </property>
+
+    <property>
+        <name>fs.s3a.endpoint</name>
+        <value>http://minio:9000</value>
+    </property>
+
+    <property>
+        <name>fs.s3a.access.key</name>
+        <value>minioadmin</value>
+    </property>
+
+    <property>
+        <name>fs.s3a.secret.key</name>
+        <value>minioadmin123</value>
+    </property>
+
+    <property>
+        <name>fs.s3a.path.style.access</name>
+        <value>true</value>
+    </property>
+
+    <property>
+        <name>fs.s3a.connection.ssl.enabled</name>
+        <value>false</value>
+    </property>
+
+    <!-- S3A Timeouts - MUST be numeric milliseconds, not duration strings -->
+    <property>
+        <name>fs.s3a.connection.timeout</name>
+        <value>60000</value>
+    </property>
+
+    <property>
+        <name>fs.s3a.connection.establish.timeout</name>
+        <value>30000</value>
+    </property>
+
+    <property>
+        <name>fs.s3a.connection.request.timeout</name>
+        <value>60000</value>
+    </property>
+
+    <property>
+        <name>fs.s3a.threads.keepalivetime</name>
+        <value>60000</value>
+    </property>
+
+    <property>
+        <name>fs.s3a.retry.throttle.interval</name>
+        <value>500</value>
+    </property>
+
+    <!-- Additional S3A parameters that might use duration strings -->
+    <property>
+        <name>fs.s3a.multipart.purge.age</name>
+        <value>86400000</value>
+        <description>24 hours in milliseconds</description>
+    </property>
+
+    <property>
+        <name>fs.s3a.readahead.range</name>
+        <value>65536</value>
+    </property>
+
+    <property>
+        <name>fs.s3a.paging.maximum</name>
+        <value>5000</value>
+    </property>
+
+    <property>
+        <name>fs.s3a.threads.max</name>
+        <value>10</value>
+    </property>
+
+    <property>
+        <name>fs.s3a.committer.threads</name>
+        <value>8</value>
+    </property>
+
+    <property>
+        <name>fs.s3a.max.total.tasks</name>
+        <value>5</value>
+    </property>
+
+    <property>
+        <name>fs.s3a.multipart.purge</name>
+        <value>true</value>
+    </property>
+</configuration>

@@ -52,11 +52,13 @@ plugins:
           Services: Serviços
           Tier 0 - Foundation: Tier 0 - Fundação
           Tier 1 - Data Platform: Tier 1 - Plataforma de Dados
+          Tier 2 - Analytics & Development: Tier 2 - Análise e Desenvolvimento
           PostgreSQL: PostgreSQL
           Valkey: Valkey
           MinIO: MinIO
           Hive Metastore: Hive Metastore
           Apache Spark: Apache Spark
+          JupyterLab: JupyterLab
           Getting Started: Começando
           Architecture: Arquitetura
           Configuration: Configuração
@@ -120,6 +122,8 @@ nav:
       - Tier 1 - Data Platform:
           - Hive Metastore: services/hive.md
           - Apache Spark: services/spark.md
+      - Tier 2 - Analytics & Development:
+          - JupyterLab: services/jupyterlab.md
   - Configuration:
       - Environment Variables: configuration/environment.md
       - Make Commands: configuration/commands.md
