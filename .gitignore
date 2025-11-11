@@ -24,3 +24,12 @@ storage/
 
 # Notebooks temporários (se usar)
 *.ipynb_checkpoints
+
+# Build artifacts
+*.jar
+*.war
+*.tar.gz
+*.zip
+
+.claude
+backups/

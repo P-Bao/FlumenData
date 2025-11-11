@@ -1,193 +1,259 @@
-SHELL := /bin/sh
-.DEFAULT_GOAL := init
+# Makefile - FlumenData orchestrator
+# Complete Lakehouse environment initialization and management
 
-# Load .env (export only variable names)
-ifneq (,$(wildcard .env))
+.DEFAULT_GOAL := help
+.PHONY: help init config up down restart logs clean test health
+
+# Load environment variables
 include .env
-export $(shell sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p' .env)
-endif
+export
 
-# Services list
-SERVICES := postgres valkey minio
+# Include service-specific makefiles
+include makefiles/core.mk
+include makefiles/postgres.mk
+include makefiles/valkey.mk
+include makefiles/minio.mk
+include makefiles/hive.mk
+include makefiles/spark.mk
 
-include make/core.mk
-include make/postgres.mk
-include make/valkey.mk
-include make/minio.mk
+# Color output
+RED    := \033[0;31m
+GREEN  := \033[0;32m
+YELLOW := \033[0;33m
+BLUE   := \033[0;34m
+RESET  := \033[0m
 
-.PHONY: init prepare config up down restart logs ps health \
-        selftest check clean clean-force reset reset-force \
-		cleanup backup-postgres restore-postgres backup-valkey \
-		restore-valkey backup-minio restore-minio backup-all \
-		inspect-volumes fix-permissions
+##@ General
 
-init: prepare config up
-	@$(MAKE) health
+help: ## Display this help message
+	@echo "$(BLUE)FlumenData - Open Source Lakehouse Platform$(RESET)"
+	@echo ""
+	@awk 'BEGIN {FS = ":.*##"; printf "Usage:\n  make $(YELLOW)<target>$(RESET)\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  $(YELLOW)%-20s$(RESET) %s\n", $$1, $$2 } /^##@/ { printf "\n$(BLUE)%s$(RESET)\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-prepare:
-	@mkdir -p storage config
-	@for s in $(SERVICES); do mkdir -p storage/$s config/$s; done
-	@mkdir -p config/postgres
-	@echo "[prepare] folders ready (postgres uses Docker volume)."
+##@ Initialization
 
-# Fix permissions for storage folders (not needed for postgres - uses Docker volume)
-fix-permissions:
-	@echo "[permissions] fixing storage permissions..."
-	@docker run --rm -v "$(CURDIR)/storage/valkey:/data" alpine:3.20 sh -c "chmod -R 755 /data" 2>/dev/null || true
-	@docker run --rm -v "$(CURDIR)/storage/minio:/data" alpine:3.20 sh -c "chmod -R 755 /data" 2>/dev/null || true
-	@echo "[permissions] done (postgres uses managed volume)."
+init: banner config up-tier0 init-tier0 up-tier1 init-tier1 health summary ## Complete environment initialization
+	@echo "$(GREEN)✓ FlumenData initialized successfully!$(RESET)"
 
-config:
-	@for s in $(SERVICES); do $(MAKE) config-$$s; done
-	@echo "[config] all service configs generated."
+banner:
+	@echo "$(BLUE)"
+	@echo "╔═══════════════════════════════════════════════════════════════╗"
+	@echo "║                                                               ║"
+	@echo "║                    F L U M E N D A T A                        ║"
+	@echo "║            Open Source Lakehouse Platform                     ║"
+	@echo "║                                                               ║"
+	@echo "╚═══════════════════════════════════════════════════════════════╝"
+	@echo "$(RESET)"
+	@echo ""
 
-up:
-	@$(DC) up -d
-	@$(DC) ps
+##@ Configuration
 
-down:
-	@$(DC) down -v || true
+config: config-valkey config-minio config-hive config-spark ## Generate all configuration files
+	@echo "$(GREEN)✓ All configurations generated$(RESET)"
 
-restart:
-	@$(DC) restart
+##@ Docker Compose Management
 
-logs:
-	@$(DC) logs -f $(S)
+up-tier0: ## Start Tier 0 services (Postgres, Valkey, MinIO)
+	@echo "$(BLUE)[tier0] Starting foundation services...$(RESET)"
+	@$(DC) -f docker-compose.tier0.yml up -d
+	@echo "$(GREEN)✓ Tier 0 services started$(RESET)"
 
-ps:
-	@$(DC) ps
+up-tier1: ## Start Tier 1 services (Hive Metastore, Spark)
+	@echo "$(BLUE)[tier1] Starting data platform services...$(RESET)"
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml up -d hive-metastore spark-master spark-worker1 spark-worker2
+	@echo "$(GREEN)✓ Tier 1 services started$(RESET)"
 
-health:
-	@$(MAKE) health-postgres
-	@$(MAKE) health-valkey
-	@$(MAKE) health-minio
-	@echo "[health] all services healthy."
+up: up-tier0 up-tier1 ## Start all services
 
-# ── Utilities ────────────────────────────────────────────────────────────────
+down: ## Stop all services
+	@echo "$(YELLOW)Stopping all services...$(RESET)"
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml down
+	@echo "$(GREEN)✓ All services stopped$(RESET)"
 
-check:
-	@command -v docker >/dev/null 2>&1 || { echo "docker not found"; exit 1; }
-	@docker version >/dev/null || { echo "docker daemon not running?"; exit 1; }
-	@echo "[check] ok"
+restart: down up ## Restart all services
 
-# Clean with confirmation
-clean:
-	@echo "⚠️  This will remove ALL generated configs."
-	@read -p "Are you sure? [y/N] " ans; \
-	if [ "$ans" = "y" ] || [ "$ans" = "Y" ]; then \
-		$(MAKE) clean-force; \
-	else echo "Aborted."; fi
+##@ Service Initialization
 
-# Clean configs only (volumes are preserved)
-clean-force:
-	@echo "[clean] removing config/..."
-	@docker run --rm -v "$(CURDIR)/config:/t"  alpine:3.20 sh -c "rm -rf /t/*" || true
-	@echo "[clean] done (Docker volumes preserved)."
+init-tier0: health-tier0 init-minio ## Initialize Tier 0 services
+	@echo "$(GREEN)✓ Tier 0 initialized$(RESET)"
 
-reset:
-	@echo "⚠️  FULL RESET: all data, configs and containers will be removed."
-	@read -p "Proceed with full reset? [y/N] " ans; \
-	if [ "$ans" = "y" ] || [ "$ans" = "Y" ]; then \
-		echo "[reset] stopping containers..."; \
-		$(DC) down -v || true; \
-		echo "[reset] cleaning config..."; \
-		$(MAKE) clean-force; \
-		cd $(CURDIR); \
-		$(MAKE) prepare; \
-		$(MAKE) config; \
-		$(MAKE) up; \
-		$(MAKE) health; \
-		echo "[reset] complete."; \
-	else echo "Aborted."; fi
+init-tier1: health-tier1 init-hive verify-hive ## Initialize Tier 1 services
+	@echo "$(GREEN)✓ Tier 1 initialized$(RESET)"
 
-reset-force:
-	@echo "[reset] performing full reset without confirmation..."
-	@$(DC) down -v || true
-	@$(MAKE) clean-force
-	@cd $(CURDIR)
-	@$(MAKE) prepare
-	@$(MAKE) config
-	@$(MAKE) up
-	@$(MAKE) health
-	@echo "[reset] complete."
+##@ Health Checks
 
-cleanup:
-	@echo "[cleanup] removing test data from all services..."
-	@$(MAKE) cleanup-postgres
-	@$(MAKE) cleanup-valkey
-	@$(MAKE) cleanup-minio
-	@echo "[cleanup] test data removed."
+health-tier0: health-postgres health-valkey health-minio ## Check Tier 0 health
+	@echo "$(GREEN)✓ Tier 0 healthy$(RESET)"
 
-# Test suite
-selftest: test-postgres test-valkey test-minio cleanup
-	@echo "[selftest] tier 0 ok"
+health-tier1: health-hive health-spark-master health-spark-workers ## Check Tier 1 health
+	@echo "$(GREEN)✓ Tier 1 healthy$(RESET)"
 
-# ── Backup & Restore ─────────────────────────────────────────────────────────
+health: health-tier0 health-tier1 ## Check all services health
+	@echo "$(GREEN)✓ All services healthy$(RESET)"
 
-# PostgreSQL backup/restore
-backup-postgres:
-	@echo "[backup] backing up postgres volume to ./backups/postgres-$(shell date +%Y%m%d-%H%M%S).tar.gz"
-	@mkdir -p backups
-	@docker run --rm -v flumendata_postgres_data:/data -v $(CURDIR)/backups:/backup alpine:3.20 \
-		tar czf /backup/postgres-$(shell date +%Y%m%d-%H%M%S).tar.gz -C /data .
-	@echo "[backup] done"
+##@ Testing
 
-restore-postgres:
-	@if [ -z "$(FILE)" ]; then echo "Usage: make restore-postgres FILE=backups/postgres-YYYYMMDD-HHMMSS.tar.gz"; exit 1; fi
-	@echo "[restore] stopping postgres..."
-	@$(DC) stop postgres
-	@echo "[restore] restoring from $(FILE)..."
-	@docker run --rm -v flumendata_postgres_data:/data -v $(CURDIR)/backups:/backup alpine:3.20 \
-		sh -c "rm -rf /data/* && tar xzf /backup/$(notdir $(FILE)) -C /data"
-	@echo "[restore] starting postgres..."
-	@$(DC) start postgres
-	@$(MAKE) health-postgres
-	@echo "[restore] done"
+test-tier0: test-postgres test-valkey test-minio ## Test Tier 0 services
+	@echo "$(GREEN)✓ Tier 0 tests passed$(RESET)"
 
-# Valkey backup/restore
-backup-valkey:
-	@echo "[backup] backing up valkey volume to ./backups/valkey-$(shell date +%Y%m%d-%H%M%S).tar.gz"
-	@mkdir -p backups
-	@docker run --rm -v flumendata_valkey_data:/data -v $(CURDIR)/backups:/backup alpine:3.20 \
-		tar czf /backup/valkey-$(shell date +%Y%m%d-%H%M%S).tar.gz -C /data .
-	@echo "[backup] done"
+test-tier1: test-spark test-hive ## Test Tier 1 services
+	@echo "$(GREEN)✓ Tier 1 tests passed$(RESET)"
 
-restore-valkey:
-	@if [ -z "$(FILE)" ]; then echo "Usage: make restore-valkey FILE=backups/valkey-YYYYMMDD-HHMMSS.tar.gz"; exit 1; fi
-	@echo "[restore] stopping valkey..."
-	@$(DC) stop valkey
-	@echo "[restore] restoring from $(FILE)..."
-	@docker run --rm -v flumendata_valkey_data:/data -v $(CURDIR)/backups:/backup alpine:3.20 \
-		sh -c "rm -rf /data/* && tar xzf /backup/$(notdir $(FILE)) -C /data"
-	@echo "[restore] starting valkey..."
-	@$(DC) start valkey
-	@$(MAKE) health-valkey
-	@echo "[restore] done"
+test: test-tier0 test-tier1 ## Run all tests
+	@echo "$(GREEN)✓ All tests passed$(RESET)"
 
-# MinIO backup/restore
-backup-minio:
-	@echo "[backup] backing up minio volume to ./backups/minio-$(shell date +%Y%m%d-%H%M%S).tar.gz"
-	@mkdir -p backups
-	@docker run --rm -v flumendata_minio_data:/data -v $(CURDIR)/backups:/backup alpine:3.20 \
-		tar czf /backup/minio-$(shell date +%Y%m%d-%H%M%S).tar.gz -C /data .
-	@echo "[backup] done"
+test-integration: ## Test Delta Lake + Spark + Hive integration
+	@echo "$(BLUE)Running integration test...$(RESET)"
+	@if [ ! -f test_integration.py ]; then \
+		echo "$(RED)✗ test_integration.py not found$(RESET)"; \
+		exit 1; \
+	fi
+	@docker cp test_integration.py flumen_spark_master:/tmp/
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml exec -T spark-master \
+		/opt/spark/bin/spark-submit /tmp/test_integration.py
+	@echo "$(GREEN)✓ Integration test passed$(RESET)"
 
-restore-minio:
-	@if [ -z "$(FILE)" ]; then echo "Usage: make restore-minio FILE=backups/minio-YYYYMMDD-HHMMSS.tar.gz"; exit 1; fi
-	@echo "[restore] stopping minio..."
-	@$(DC) stop minio
-	@echo "[restore] restoring from $(FILE)..."
-	@docker run --rm -v flumendata_minio_data:/data -v $(CURDIR)/backups:/backup alpine:3.20 \
-		sh -c "rm -rf /data/* && tar xzf /backup/$(notdir $(FILE)) -C /data"
-	@echo "[restore] starting minio..."
-	@$(DC) start minio
-	@$(MAKE) health-minio
-	@echo "[restore] done"
+##@ Data Persistence Tests
 
-# Backup all services at once
-backup-all:
-	@echo "[backup] backing up all services..."
-	@$(MAKE) backup-postgres
-	@$(MAKE) backup-valkey
-	@$(MAKE) backup-minio
-	@echo "[backup] all services backed up to ./backups/"
+persist-tier0: persist-postgres persist-valkey persist-minio ## Test Tier 0 data persistence
+	@echo "$(GREEN)✓ Tier 0 persistence verified$(RESET)"
+
+persist-tier1: persist-spark ## Test Tier 1 data persistence
+	@echo "$(GREEN)✓ Tier 1 persistence verified$(RESET)"
+
+persist: persist-tier0 persist-tier1 ## Test all data persistence
+	@echo "$(GREEN)✓ All data persistence verified$(RESET)"
+
+##@ Cleanup
+
+cleanup-tier0: cleanup-postgres cleanup-valkey cleanup-minio ## Cleanup Tier 0 test data
+	@echo "$(GREEN)✓ Tier 0 cleanup complete$(RESET)"
+
+cleanup-tier1: cleanup-spark ## Cleanup Tier 1 test data
+	@echo "$(GREEN)✓ Tier 1 cleanup complete$(RESET)"
+
+cleanup: cleanup-tier0 cleanup-tier1 ## Cleanup all test data
+	@echo "$(GREEN)✓ All test data cleaned$(RESET)"
+
+clean: down ## Stop services and remove volumes (WARNING: deletes all data)
+	@echo "$(RED)WARNING: This will delete all data!$(RESET)"
+	@printf "Are you sure? [y/N] "; \
+	read REPLY; \
+	case "$$REPLY" in \
+		[Yy]*) \
+			$(DC) -f docker-compose.tier1.yml down -v; \
+			$(DC) -f docker-compose.tier0.yml down -v; \
+			rm -rf config/*; \
+			echo "$(GREEN)✓ Environment cleaned$(RESET)"; \
+			;; \
+		*) \
+			echo "$(YELLOW)Cancelled$(RESET)"; \
+			;; \
+	esac
+
+##@ Logs
+
+logs: ## Show logs for all services
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml logs -f
+
+logs-tier0: ## Show logs for Tier 0 services
+	@$(DC) -f docker-compose.tier0.yml logs -f
+
+logs-tier1: ## Show logs for Tier 1 services
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml logs -f hive-metastore spark-master spark-worker1 spark-worker2
+
+logs-postgres: ## Show PostgreSQL logs
+	@$(DC) -f docker-compose.tier0.yml logs -f postgres
+
+logs-minio: ## Show MinIO logs
+	@$(DC) -f docker-compose.tier0.yml logs -f minio
+
+logs-spark: ## Show Spark logs
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml logs -f spark-master spark-worker1 spark-worker2
+
+logs-hive: ## Show Hive Metastore logs
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml logs -f hive-metastore
+
+##@ Service Status
+
+ps: ## Show running containers
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml ps
+
+status: ps ## Alias for ps
+
+summary: ## Show environment summary
+	@echo ""
+	@echo "$(BLUE)╔══════════════════════════════════════════════════════════════╗$(RESET)"
+	@echo "$(BLUE)║              FlumenData Environment Summary                  ║$(RESET)"
+	@echo "$(BLUE)╚══════════════════════════════════════════════════════════════╝$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Tier 0 - Foundation Services:$(RESET)"
+	@echo "  • PostgreSQL    → http://localhost:5432"
+	@echo "  • Valkey        → localhost:6379"
+	@echo "  • MinIO API     → http://localhost:9000"
+	@echo "  • MinIO Console → http://localhost:9001"
+	@echo ""
+	@echo "$(YELLOW)Tier 1 - Data Platform:$(RESET)"
+	@echo "  • Spark Master    → http://localhost:8080"
+	@echo "  • Hive Metastore  → thrift://localhost:9083"
+	@echo ""
+	@echo "$(YELLOW)Lakehouse Architecture:$(RESET)"
+	@echo "  • Catalog       : Hive Metastore (2-level: database.table)"
+	@echo "  • Table Format  : Delta Lake 4.0 (with time travel)"
+	@echo "  • Compute       : Apache Spark 4.0.1 (1 Master + 2 Workers)"
+	@echo "  • Metadata DB   : PostgreSQL"
+	@echo "  • Storage       : s3a://$(MINIO_BUCKET)/warehouse"
+	@echo ""
+	@echo "$(GREEN)Quick Commands:$(RESET)"
+	@echo "  make logs              - View all logs"
+	@echo "  make verify-hive       - Verify Hive databases"
+	@echo "  make ps                - Show container status"
+	@echo ""
+
+##@ Development
+
+shell-postgres: ## Open PostgreSQL shell
+	@$(DC) -f docker-compose.tier0.yml exec postgres psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
+
+shell-spark: ## Open Spark shell
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml exec spark-master /opt/spark/bin/spark-shell \
+		--master spark://spark-master:7077
+
+shell-pyspark: ## Open PySpark shell
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml exec spark-master /opt/spark/bin/pyspark \
+		--master spark://spark-master:7077
+
+shell-spark-sql: ## Open Spark SQL shell
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml exec spark-master /opt/spark/bin/spark-sql \
+		--master spark://spark-master:7077
+
+mc: ## Open MinIO client (mc) shell
+	@docker run --rm -it --network $(COMPOSE_PROJECT_NAME)_default \
+		-e MC_HOST_flumen=http://$(MINIO_ROOT_USER):$(MINIO_ROOT_PASSWORD)@minio:9000 \
+		minio/mc:RELEASE.2025-08-13T08-35-41Z
+
+##@ Documentation
+
+docs-serve: ## Serve documentation locally
+	@echo "$(BLUE)Starting documentation server...$(RESET)"
+	@docker run --rm -it -p 8000:8000 -v ${PWD}:/docs squidfunk/mkdocs-material
+	@echo "$(GREEN)Documentation available at http://localhost:8000$(RESET)"
+
+docs-build: ## Build documentation
+	@echo "$(BLUE)Building documentation...$(RESET)"
+	@docker run --rm -v ${PWD}:/docs squidfunk/mkdocs-material build
+	@echo "$(GREEN)✓ Documentation built in site/$(RESET)"
+
+##@ Advanced
+
+rebuild: ## Rebuild all custom Docker images
+	@echo "$(BLUE)Rebuilding custom Docker images...$(RESET)"
+	@docker build -t flumendata/hive:standalone-metastore-4.1.0 -f docker/hive.Dockerfile .
+	@docker build -t flumendata/spark:4.0.1-health -f docker/spark.Dockerfile .
+	@echo "$(GREEN)✓ All custom images rebuilt$(RESET)"
+
+reset: clean config up health ## Complete reset and reinitialize
+	@echo "$(GREEN)✓ Environment reset complete$(RESET)"
+
+validate: health test test-integration ## Full validation (health + tests + integration)
+	@echo "$(GREEN)✓ Full validation passed$(RESET)"

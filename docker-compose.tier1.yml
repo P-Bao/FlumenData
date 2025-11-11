@@ -1,0 +1,137 @@
+services:
+  # Hive Metastore - Catalog for Spark + Delta Lake
+  hive-metastore:
+    build:
+      context: .
+      dockerfile: docker/hive.Dockerfile
+    image: flumendata/hive:standalone-metastore-4.1.0
+    container_name: flumen_hive_metastore
+    restart: unless-stopped
+    environment:
+      - SERVICE_NAME=metastore
+      - DB_DRIVER=postgres
+      - SERVICE_OPTS=-Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://postgres:5432/${POSTGRES_DB} -Djavax.jdo.option.ConnectionUserName=${POSTGRES_USER} -Djavax.jdo.option.ConnectionPassword=${POSTGRES_PASSWORD}
+    ports:
+      - "9083:9083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - ./config/hive/hive-site.xml:/opt/hive/conf/hive-site.xml:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f HiveMetaStore > /dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 60s
+
+  # Spark Master
+  spark-master:
+    build:
+      context: .
+      dockerfile: docker/spark.Dockerfile
+    image: flumendata/spark:4.0.1-health
+    container_name: flumen_spark_master
+    restart: unless-stopped
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+      - SPARK_DIST_CLASSPATH=/opt/spark/conf:/opt/spark/jars/*
+      - HADOOP_CONF_DIR=/opt/spark/conf
+      - HOME=/opt/spark
+    command: ["/opt/spark/bin/spark-class","org.apache.spark.deploy.master.Master","--host","spark-master","--port","7077","--webui-port","8080"]
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    volumes:
+      - spark_conf:/opt/spark/conf
+      - spark_ivy:/opt/spark/.ivy2
+      - spark_work:/opt/spark/work
+      - spark_logs:/opt/spark/logs
+      - ./config/spark/spark-env.sh:/opt/spark/conf/spark-env.sh:ro
+      - ./config/spark/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+      - ./config/spark/core-site.xml:/opt/spark/conf/core-site.xml:ro
+      - ./config/spark/hive-site.xml:/opt/spark/conf/hive-site.xml:ro
+    depends_on:
+      hive-metastore:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL","curl -sf http://localhost:8080/ > /dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  # Spark Worker 1
+  spark-worker1:
+    image: flumendata/spark:4.0.1-health
+    container_name: flumen_spark_worker1
+    restart: unless-stopped
+    user: "0:0"
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+      - HADOOP_CONF_DIR=/opt/spark/conf
+      - HOME=/opt/spark
+    depends_on:
+      spark-master:
+        condition: service_healthy
+    command: ["/bin/sh","-lc",
+      "chown -R 185:0 /opt/spark/work /opt/spark/logs && \
+       exec /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker --webui-port 8081 spark://spark-master:7077"
+    ]
+    volumes:
+      - spark_conf:/opt/spark/conf
+      - spark_ivy:/opt/spark/.ivy2
+      - spark_work:/opt/spark/work
+      - spark_logs:/opt/spark/logs
+      - ./config/spark/spark-env.sh:/opt/spark/conf/spark-env.sh:ro
+      - ./config/spark/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+      - ./config/spark/core-site.xml:/opt/spark/conf/core-site.xml:ro
+      - ./config/spark/hive-site.xml:/opt/spark/conf/hive-site.xml:ro
+    healthcheck:
+      test: ["CMD-SHELL","curl -sf http://spark-master:8080/ > /dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  # Spark Worker 2
+  spark-worker2:
+    image: flumendata/spark:4.0.1-health
+    container_name: flumen_spark_worker2
+    restart: unless-stopped
+    user: "0:0"
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+      - HADOOP_CONF_DIR=/opt/spark/conf
+      - HOME=/opt/spark
+    depends_on:
+      spark-master:
+        condition: service_healthy
+    command: ["/bin/sh","-lc",
+      "chown -R 185:0 /opt/spark/work /opt/spark/logs && \
+       exec /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker --webui-port 8081 spark://spark-master:7077"
+    ]
+    volumes:
+      - spark_conf:/opt/spark/conf
+      - spark_ivy:/opt/spark/.ivy2
+      - spark_work:/opt/spark/work
+      - spark_logs:/opt/spark/logs
+      - ./config/spark/spark-env.sh:/opt/spark/conf/spark-env.sh:ro
+      - ./config/spark/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+      - ./config/spark/core-site.xml:/opt/spark/conf/core-site.xml:ro
+      - ./config/spark/hive-site.xml:/opt/spark/conf/hive-site.xml:ro
+    healthcheck:
+      test: ["CMD-SHELL","curl -sf http://spark-master:8080/ > /dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  spark_conf:
+    name: flumen_spark_conf
+  spark_ivy:
+    name: flumen_spark_ivy
+  spark_work:
+    name: flumen_spark_work
+  spark_logs:
+    name: flumen_spark_logs
