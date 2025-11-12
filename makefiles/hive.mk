@@ -24,17 +24,17 @@ init-hive:
 
 # Verify Hive Metastore setup
 verify-hive:
-	@echo "$(BLUE)════════════════════════════════════════════════$(RESET)"
-	@echo "$(BLUE)   Hive Metastore - Lakehouse Structure         $(RESET)"
-	@echo "$(BLUE)════════════════════════════════════════════════$(RESET)"
+	@echo "$(YELLOW)════════════════════════════════════════════════$(RESET)"
+	@echo "$(YELLOW)   Downloading Spark Dependencies               $(RESET)"
+	@echo "$(YELLOW)════════════════════════════════════════════════$(RESET)"
 	@echo ""
-	@echo "$(YELLOW)📊 Databases:$(RESET)"
+	@echo "$(YELLOW)PLEASE WAIT: This may take a few minutes...$(RESET)"
 	@TMP_FILE="$$(mktemp)"; \
 	( docker exec flumen_spark_master /opt/spark/bin/spark-sql \
 		--master spark://spark-master:7077 \
 		-e "SHOW DATABASES" > "$$TMP_FILE" 2>&1 ) & \
 	CMD_PID=$$!; \
-	MSG="[hive:verify] Downloading dependencies (This may take some time)"; \
+	MSG="[hive:verify] Preparing Spark SQL environment"; \
 	DOTS=""; \
 	while kill -0 $$CMD_PID 2>/dev/null; do \
 		DOTS="$$DOTS."; \
@@ -44,25 +44,28 @@ verify-hive:
 	done; \
 	wait $$CMD_PID >/dev/null 2>&1; \
 	STATUS=$$?; \
-	printf "\r%s... done\033[K\n" "$$MSG"; \
 	if [ $$STATUS -ne 0 ]; then \
+		printf "\r%s ✗\033[K\n" "$$MSG"; \
 		echo "[hive:verify]   Failed to load database list"; \
 		cat "$$TMP_FILE"; \
 		rm -f "$$TMP_FILE"; \
 		exit $$STATUS; \
 	fi; \
-	DB_RAW="$$(cat "$$TMP_FILE")"; rm -f "$$TMP_FILE"; \
-	echo "$$DB_RAW" | grep -v "INFO\|WARN\|Time taken" | tail -n +2 | while read -r db; do \
-		[ -z "$$db" ] && continue; \
-	done
-	@echo ""
-	@echo "$(YELLOW)🗄️  Metadata Database:$(RESET) PostgreSQL"
-	@echo "$(YELLOW)💾 Storage Backend:$(RESET) s3a://$(MINIO_BUCKET)/warehouse"
-	@echo "$(YELLOW)🔗 Metastore URI:$(RESET) thrift://hive-metastore:9083"
-	@echo ""
-	@echo "$(GREEN)════════════════════════════════════════════════$(RESET)"
-	@echo "$(GREEN)✓ Verification complete$(RESET)"
-	@echo "$(GREEN)════════════════════════════════════════════════$(RESET)"
+	printf "\r%s $(GREEN)DONE$(RESET)\033[K\n" "$$MSG"; \
+	DB_RAW="$$(cat "$$TMP_FILE")"; \
+	rm -f "$$TMP_FILE"; \
+	echo ""; \
+	echo "$(BLUE)════════════════════════════════════════════════$(RESET)"; \
+	echo "$(BLUE)   Hive Metastore - Lakehouse Structure         $(RESET)"; \
+	echo "$(BLUE)════════════════════════════════════════════════$(RESET)"; \
+	echo ""; \
+	echo "$(YELLOW)🗄️ Metadata Database:$(RESET) PostgreSQL"; \
+	echo "$(YELLOW)💾 Storage Backend:$(RESET) s3a://$(MINIO_BUCKET)/warehouse"; \
+	echo "$(YELLOW)🔗 Metastore URI:$(RESET) thrift://hive-metastore:9083"; \
+	echo ""; \
+	echo "$(GREEN)════════════════════════════════════════════════$(RESET)"; \
+	echo "$(GREEN)✓ Verification complete$(RESET)"; \
+	echo "$(GREEN)════════════════════════════════════════════════$(RESET)"
 
 # Test Hive Metastore
 test-hive:
