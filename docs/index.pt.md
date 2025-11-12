@@ -184,6 +184,8 @@ Após executar `make init`, acesse essas UIs:
 
 - **Interface Spark Master**: http://localhost:8080
 - **Console MinIO**: http://localhost:9001 (minioadmin / minioadmin123)
+- **JupyterLab**: http://localhost:8888 (execute `make token-jupyterlab` para obter o token)
+- **MLflow Tracking UI**: http://localhost:${MLFLOW_PORT}
 
 ## Roteiro
 

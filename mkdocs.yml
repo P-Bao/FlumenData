@@ -60,6 +60,7 @@ plugins:
           Apache Spark: Apache Spark
           JupyterLab: JupyterLab
           dbt: dbt
+          MLflow: MLflow
           Getting Started: Começando
           Architecture: Arquitetura
           Configuration: Configuração
@@ -126,6 +127,7 @@ nav:
       - Tier 2 - Analytics & Development:
           - JupyterLab: services/jupyterlab.md
           - dbt: services/dbt.md
+          - MLflow: services/mlflow.md
   - Configuration:
       - Environment Variables: configuration/environment.md
       - Make Commands: configuration/commands.md

@@ -255,6 +255,31 @@ DBT_ADAPTERS="dbt-postgres==1.7.14 dbt-spark[PyHive]==1.7.2"
 make up-tier2
 ```
 
+### MLflow
+
+```bash
+# MLflow tracking server
+MLFLOW_PORT=5000                 # Host/UI port
+MLFLOW_ARTIFACT_PATH=mlflow      # Prefix inside the MinIO bucket
+MLFLOW_VERSION=2.14.1            # mlflow package version baked into docker/mlflow.Dockerfile
+```
+
+**Used by:**
+- `templates/mlflow/server.env.tpl`
+- `docker/mlflow.Dockerfile` build args
+- `docker-compose.tier2.yml` service definition (ports and command)
+
+**Examples:**
+```bash
+# Run MLflow on another port
+MLFLOW_PORT=5050
+make up-tier2
+
+# Store artifacts in a separate prefix
+MLFLOW_ARTIFACT_PATH=experiments/mlflow
+make config-mlflow
+```
+
 ## Advanced Configuration
 
 ### S3A Performance Tuning

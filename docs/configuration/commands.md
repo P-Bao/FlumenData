@@ -62,6 +62,7 @@ make config-hive
 make config-spark
 make config-jupyterlab
 make config-dbt
+make config-mlflow
 ```
 
 **When to use:**

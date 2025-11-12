@@ -17,6 +17,7 @@ include makefiles/hive.mk
 include makefiles/spark.mk
 include makefiles/jupyterlab.mk
 include makefiles/dbt.mk
+include makefiles/mlflow.mk
 
 # Color output
 RED    := \033[0;31m
@@ -50,7 +51,7 @@ banner:
 
 ##@ Configuration
 
-config: config-valkey config-minio config-hive config-spark config-jupyterlab config-dbt ## Generate all configuration files
+config: config-valkey config-minio config-hive config-spark config-jupyterlab config-dbt config-mlflow ## Generate all configuration files
 	@echo "$(GREEN)✓ All configurations generated$(RESET)"
 
 ##@ Docker Compose Management
@@ -65,13 +66,14 @@ up-tier1: ## Start Tier 1 services (Hive Metastore, Spark)
 	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml up -d hive-metastore spark-master spark-worker1 spark-worker2
 	@echo "$(GREEN)✓ Tier 1 services started$(RESET)"
 
-up-tier2: config-jupyterlab config-dbt ## Start Tier 2 services (JupyterLab, dbt, MLflow)
+up-tier2: config-jupyterlab config-dbt config-mlflow ## Start Tier 2 services (JupyterLab, dbt, MLflow)
 	@echo "$(BLUE)[tier2] Starting analytics & development services...$(RESET)"
-	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml -f docker-compose.tier2.yml up -d jupyterlab dbt
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml -f docker-compose.tier2.yml up -d jupyterlab dbt mlflow
 	@echo "$(GREEN)✓ Tier 2 services started$(RESET)"
 	@echo ""
 	@echo "$(YELLOW)JupyterLab:$(RESET) http://localhost:8888"
 	@echo "Get token: $(YELLOW)make token-jupyterlab$(RESET)"
+	@echo "$(YELLOW)MLflow UI:$(RESET) http://localhost:$(MLFLOW_PORT)"
 
 up: up-tier0 up-tier1 up-tier2 ## Start all services (Tier 0 + Tier 1 + Tier 2)
 
@@ -92,7 +94,7 @@ init-tier0: health-tier0 init-minio ## Initialize Tier 0 services
 init-tier1: health-tier1 init-hive verify-hive ## Initialize Tier 1 services
 	@echo "$(GREEN)✓ Tier 1 initialized$(RESET)"
 
-init-tier2: health-tier2 init-jupyterlab init-dbt ## Initialize Tier 2 services
+init-tier2: health-tier2 init-jupyterlab init-dbt init-mlflow ## Initialize Tier 2 services
 	@echo "$(GREEN)✓ Tier 2 initialized$(RESET)"
 
 ##@ Health Checks
@@ -103,7 +105,7 @@ health-tier0: health-postgres health-valkey health-minio ## Check Tier 0 health
 health-tier1: health-hive health-spark-master health-spark-workers ## Check Tier 1 health
 	@echo "$(GREEN)✓ Tier 1 healthy$(RESET)"
 
-health-tier2: health-jupyterlab health-dbt ## Check Tier 2 health
+health-tier2: health-jupyterlab health-dbt health-mlflow ## Check Tier 2 health
 	@echo "$(GREEN)✓ Tier 2 healthy$(RESET)"
 
 health: health-tier0 health-tier1 health-tier2 ## Check all services health
@@ -117,7 +119,7 @@ test-tier0: test-postgres test-valkey test-minio ## Test Tier 0 services
 test-tier1: test-spark test-hive ## Test Tier 1 services
 	@echo "$(GREEN)✓ Tier 1 tests passed$(RESET)"
 
-test-tier2: test-jupyterlab test-dbt ## Test Tier 2 services
+test-tier2: test-jupyterlab test-dbt test-mlflow ## Test Tier 2 services
 	@echo "$(GREEN)✓ Tier 2 tests passed$(RESET)"
 
 test: test-tier0 test-tier1 test-tier2 ## Run all tests
@@ -191,7 +193,7 @@ logs-tier1: ## Show logs for Tier 1 services
 	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml logs -f hive-metastore spark-master spark-worker1 spark-worker2
 
 logs-tier2: ## Show logs for Tier 2 services
-	@$(DC) -f docker-compose.tier2.yml logs -f jupyterlab dbt
+	@$(DC) -f docker-compose.tier2.yml logs -f jupyterlab dbt mlflow
 
 logs-postgres: ## Show PostgreSQL logs
 	@$(DC) -f docker-compose.tier0.yml logs -f postgres
@@ -231,6 +233,7 @@ summary: ## Show environment summary
 	@echo "$(YELLOW)Tier 2 - Analytics & Development:$(RESET)"
 	@echo "  • JupyterLab      → http://localhost:8888 (run 'make token-jupyterlab')"
 	@echo "  • dbt CLI         → run 'make shell-dbt' to open the container"
+	@echo "  • MLflow UI       → http://localhost:$(MLFLOW_PORT)"
 	@echo ""
 	@echo "$(YELLOW)Lakehouse Architecture:$(RESET)"
 	@echo "  • Catalog       : Hive Metastore (2-level: database.table)"

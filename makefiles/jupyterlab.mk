@@ -119,9 +119,23 @@ python-jupyterlab: ## Open Python shell in JupyterLab container
 .PHONY: health-jupyterlab
 health-jupyterlab: ## Check JupyterLab health
 	@echo "Checking JupyterLab health..."
-	@docker exec flumen_jupyterlab curl -sf http://localhost:8888/lab > /dev/null && \
-		echo "✓ JupyterLab is healthy" || \
-		echo "✗ JupyterLab is not responding"
+	@TIMEOUT=60; \
+	STATUS="starting"; \
+	while [ $$TIMEOUT -gt 0 ]; do \
+		STATUS=$$(docker inspect --format '{{.State.Health.Status}}' flumen_jupyterlab 2>/dev/null); \
+		if [ "$$STATUS" = "healthy" ]; then \
+			break; \
+		fi; \
+		sleep 2; \
+		TIMEOUT=$$((TIMEOUT - 2)); \
+	done; \
+	if [ "$$STATUS" = "healthy" ]; then \
+		echo "✓ JupyterLab container is healthy (Docker healthcheck)"; \
+	else \
+		echo "✗ JupyterLab is not responding (status: $$STATUS)"; \
+		docker inspect --format '{{json .State.Health}}' flumen_jupyterlab 2>/dev/null || true; \
+		exit 1; \
+	fi
 
 # =============================================================================
 # Testing

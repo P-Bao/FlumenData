@@ -128,6 +128,8 @@ Após executar `make init`, acesse:
 - **Console MinIO**: http://localhost:9001 - Gerenciamento de armazenamento de objetos
   - Usuário: `minioadmin`
   - Senha: `minioadmin123`
+- **JupyterLab**: http://localhost:8888 - Notebooks para exploração de dados (`make token-jupyterlab` para obter o token)
+- **MLflow Tracking UI**: http://localhost:${MLFLOW_PORT} - Painel de rastreamento de experimentos
 
 ## 📖 Documentação
 

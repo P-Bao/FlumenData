@@ -184,6 +184,8 @@ After running `make init`, access these UIs:
 
 - **Spark Master UI**: http://localhost:8080
 - **MinIO Console**: http://localhost:9001 (minioadmin / minioadmin123)
+- **JupyterLab**: http://localhost:8888 (run `make token-jupyterlab` for access)
+- **MLflow Tracking UI**: http://localhost:${MLFLOW_PORT}
 
 ## Roadmap
 
