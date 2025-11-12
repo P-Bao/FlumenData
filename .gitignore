@@ -30,6 +30,3 @@ storage/
 *.war
 *.tar.gz
 *.zip
-
-.claude
-backups/

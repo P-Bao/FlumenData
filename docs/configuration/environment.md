@@ -15,6 +15,9 @@ templates/               # Source templates
 ├── spark/
 │   ├── spark-defaults.conf.tpl
 │   └── spark-env.sh.tpl
+├── dbt/
+│   ├── profiles.yml.tpl
+│   └── project/
 ├── minio/
 │   └── policy-readonly.json.tpl
 └── valkey/
@@ -27,6 +30,9 @@ config/                  # Generated files (DO NOT EDIT)
 │   ├── spark-defaults.conf
 │   ├── spark-env.sh
 │   └── hive-site.xml (copied from hive/)
+├── dbt/
+│   ├── profiles.yml
+│   └── project/
 ├── minio/
 │   └── policy-readonly.json
 └── valkey/
@@ -46,6 +52,8 @@ make config-hive
 make config-spark
 make config-minio
 make config-valkey
+make config-jupyterlab
+make config-dbt
 
 # Restart services to apply changes
 make restart
@@ -215,6 +223,37 @@ make restart
 
 !!! warning "Version Compatibility"
     Ensure Delta Lake, Spark, and Scala versions are compatible. Check [Delta Lake releases](https://docs.delta.io/latest/releases.html).
+
+### dbt
+
+```bash
+# dbt workspace defaults
+DBT_TARGET_SCHEMA=analytics   # PostgreSQL schema for dbt models
+DBT_THREADS=4                 # Parallelism for dbt runs
+DBT_CORE_VERSION=1.7.14       # Version of dbt-core installed in the dbt image
+DBT_ADAPTERS=dbt-postgres==1.7.14  # Space-separated list of adapter packages to install
+```
+
+**Used by:**
+- `templates/dbt/profiles.yml.tpl`
+- dbt container launched via `make up-tier2`
+- Make targets such as `run-dbt`, `test-dbt`, `build-dbt`
+- `docker/dbt.Dockerfile` build args (via docker-compose)
+
+**Examples:**
+```bash
+# Deploy into a dedicated schema
+DBT_TARGET_SCHEMA=analytics_dev
+make config-dbt
+
+# Increase parallelism for heavier pipelines
+DBT_THREADS=8
+make config-dbt
+
+# Include Spark adapter alongside Postgres
+DBT_ADAPTERS="dbt-postgres==1.7.14 dbt-spark[PyHive]==1.7.2"
+make up-tier2
+```
 
 ## Advanced Configuration
 

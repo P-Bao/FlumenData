@@ -59,6 +59,7 @@ plugins:
           Hive Metastore: Hive Metastore
           Apache Spark: Apache Spark
           JupyterLab: JupyterLab
+          dbt: dbt
           Getting Started: Começando
           Architecture: Arquitetura
           Configuration: Configuração
@@ -124,6 +125,7 @@ nav:
           - Apache Spark: services/spark.md
       - Tier 2 - Analytics & Development:
           - JupyterLab: services/jupyterlab.md
+          - dbt: services/dbt.md
   - Configuration:
       - Environment Variables: configuration/environment.md
       - Make Commands: configuration/commands.md

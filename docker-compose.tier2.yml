@@ -59,6 +59,47 @@ services:
       start_period: 30s
     restart: unless-stopped
 
+  # =============================================================================
+  # dbt - Analytics Engineering CLI
+  # =============================================================================
+  dbt:
+    container_name: flumen_dbt
+    build:
+      context: .
+      dockerfile: docker/dbt.Dockerfile
+      args:
+        - DBT_CORE_VERSION=${DBT_CORE_VERSION:-1.7.14}
+        - DBT_ADAPTERS=${DBT_ADAPTERS:-dbt-postgres==1.7.14}
+    image: flumendata/dbt:${DBT_CORE_VERSION:-1.7.14}
+    hostname: dbt
+    working_dir: /usr/app
+    command: ["tail", "-f", "/dev/null"]
+    environment:
+      - DBT_PROFILES_DIR=/root/.dbt
+    volumes:
+      - ./config/dbt/profiles.yml:/root/.dbt/profiles.yml:ro
+      - ./config/dbt/project:/usr/app:rw
+      - flumen_shared_data:/data:rw
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "dbt",
+          "--project-dir",
+          "/usr/app",
+          "--profiles-dir",
+          "/root/.dbt",
+          "debug",
+        ]
+      interval: 60s
+      timeout: 20s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
 # =============================================================================
 # Named Volumes
 # =============================================================================

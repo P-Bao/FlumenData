@@ -60,6 +60,8 @@ make config-valkey
 make config-minio
 make config-hive
 make config-spark
+make config-jupyterlab
+make config-dbt
 ```
 
 **When to use:**
