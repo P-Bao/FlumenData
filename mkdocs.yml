@@ -128,6 +128,8 @@ nav:
           - JupyterLab: services/jupyterlab.md
           - dbt: services/dbt.md
           - MLflow: services/mlflow.md
+      - Tier 3 - Orchestration & BI:
+          - Trino: services/trino.md
   - Configuration:
       - Environment Variables: configuration/environment.md
       - Make Commands: configuration/commands.md

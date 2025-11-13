@@ -154,6 +154,8 @@ Páginas principais de documentação:
 # Gerenciamento de Serviços
 make init              # Inicialização completa
 make up                # Iniciar todos os serviços
+make up-tier2          # Iniciar serviços de analytics & ML
+make up-tier3          # Iniciar serviços de orquestração & BI
 make down              # Parar todos os serviços
 make restart           # Reiniciar todos os serviços
 
@@ -161,17 +163,22 @@ make restart           # Reiniciar todos os serviços
 make health            # Verificar todos os serviços
 make health-tier0      # Verificar serviços de fundação
 make health-tier1      # Verificar serviços de plataforma de dados
+make health-tier2      # Verificar serviços de analytics & ML
+make health-tier3      # Verificar serviços de orquestração & BI
 
 # Testes
 make test              # Executar todos os testes
 make test-tier0        # Testar serviços Tier 0
 make test-tier1        # Testar serviços Tier 1
+make test-tier2        # Testar serviços Tier 2
+make test-tier3        # Testar serviços Tier 3
 
 # Shells Interativos
 make shell-spark       # Shell Spark Scala
 make shell-pyspark     # Shell PySpark Python
 make shell-spark-sql   # Shell Spark SQL
 make shell-postgres    # Shell PostgreSQL
+make sql-trino         # CLI do Trino
 make mc                # Cliente MinIO
 
 # Manutenção
@@ -197,15 +204,25 @@ FlumenData/
 │   ├── valkey.mk
 │   ├── minio.mk
 │   ├── hive.mk
-│   └── spark.mk
+│   ├── spark.mk
+│   ├── jupyterlab.mk
+│   ├── dbt.mk
+│   ├── mlflow.mk
+│   └── trino.mk
 ├── templates/                  # Templates de configuração
 │   ├── hive/
 │   ├── spark/
 │   ├── minio/
-│   └── valkey/
+│   ├── valkey/
+│   ├── jupyterlab/
+│   ├── dbt/
+│   ├── mlflow/
+│   └── trino/
 ├── .env                        # Variáveis de ambiente (não no git)
 ├── docker-compose.tier0.yml    # Serviços de fundação
 ├── docker-compose.tier1.yml    # Serviços de plataforma de dados
+├── docker-compose.tier2.yml    # Serviços de analytics & desenvolvimento
+├── docker-compose.tier3.yml    # Serviços de orquestração & BI
 ├── Makefile                    # Orquestração principal
 ├── mkdocs.yml                 # Configuração da documentação
 └── README_PT.md                # Este arquivo
@@ -225,8 +242,8 @@ FlumenData é perfeito para:
 
 - ✅ **Tier 0 – Fundação**: PostgreSQL, Valkey, MinIO
 - ✅ **Tier 1 – Plataforma de Dados**: Spark, Hive Metastore, Delta Lake
-- 🔄 **Tier 2 – Desenvolvimento & ML**: JupyterLab, dbt, MLflow
-- 📋 **Tier 3 – Orquestração & BI**: Airflow, Trino, Superset
+- ✅ **Tier 2 – Desenvolvimento & ML**: JupyterLab, dbt, MLflow
+- 🔄 **Tier 3 – Orquestração & BI**: Trino (Superset & Airflow em breve)
 - 📋 **Tier 4 – Observabilidade**: Prometheus, Grafana
 
 ## 🤝 Contribuindo

@@ -1,0 +1,8 @@
+-server
+-Xmx4G
+-Xms4G
+-XX:+UseG1GC
+-XX:+UseGCOverheadLimit
+-XX:+ExplicitGCInvokesConcurrent
+-XX:+HeapDumpOnOutOfMemoryError
+-XX:+ExitOnOutOfMemoryError

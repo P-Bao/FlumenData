@@ -280,6 +280,31 @@ MLFLOW_ARTIFACT_PATH=experiments/mlflow
 make config-mlflow
 ```
 
+### Trino
+
+```bash
+# Trino coordinator
+TRINO_PORT=8082             # Host/UI port mapped to internal 8080
+TRINO_VERSION=450           # Trino image tag
+TRINO_ENVIRONMENT=lakehouse # Value stored in node.properties
+```
+
+**Used by:**
+- `docker-compose.tier3.yml` (ports, image tag)
+- `makefiles/trino.mk` targets
+- `templates/trino/node.properties.tpl`
+
+**Examples:**
+```bash
+# Avoid port conflicts
+TRINO_PORT=9090
+make up-tier3
+
+# Pin a specific Trino release
+TRINO_VERSION=448
+make up-tier3
+```
+
 ## Advanced Configuration
 
 ### S3A Performance Tuning

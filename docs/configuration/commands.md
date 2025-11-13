@@ -63,6 +63,7 @@ make config-spark
 make config-jupyterlab
 make config-dbt
 make config-mlflow
+make config-trino
 ```
 
 **When to use:**
@@ -75,7 +76,7 @@ make config-mlflow
 ### Starting Services
 
 #### `make up`
-Start all services (Tier 0 + Tier 1).
+Start all services (Tiers 0 through 3).
 
 ```bash
 make up
@@ -93,6 +94,20 @@ Start only Tier 1 data platform services.
 
 ```bash
 make up-tier1  # Hive Metastore, Spark cluster
+```
+
+#### `make up-tier2`
+Start analytics & ML services.
+
+```bash
+make up-tier2  # JupyterLab, dbt, MLflow
+```
+
+#### `make up-tier3`
+Start orchestration & BI services.
+
+```bash
+make up-tier3  # Trino (Superset/Airflow later)
 ```
 
 ### Stopping Services
@@ -159,6 +174,8 @@ make health
 ```bash
 make health-tier0   # PostgreSQL, Valkey, MinIO
 make health-tier1   # Hive Metastore, Spark cluster
+make health-tier2   # JupyterLab, dbt, MLflow
+make health-tier3   # Trino (and future Tier 3 services)
 ```
 
 ### Individual Service Health
@@ -170,6 +187,10 @@ make health-minio
 make health-hive
 make health-spark-master
 make health-spark-workers
+make health-jupyterlab
+make health-dbt
+make health-mlflow
+make health-trino
 ```
 
 ## Testing Commands
@@ -188,12 +209,18 @@ make test
 - MinIO: Bucket creation, object upload/download
 - Hive Metastore: Database creation, metadata storage
 - Spark: Job submission, Delta Lake operations
+- JupyterLab: HTTP availability probe
+- dbt: `dbt debug` against PostgreSQL
+- MLflow: REST API reachability
+- Trino: CLI query against the coordinator
 
 ### Tier-Specific Tests
 
 ```bash
 make test-tier0     # Test foundation services
 make test-tier1     # Test data platform services
+make test-tier2     # Test analytics & ML services
+make test-tier3     # Test orchestration & BI services
 ```
 
 ### Individual Service Tests
@@ -204,6 +231,10 @@ make test-valkey
 make test-minio
 make test-hive
 make test-spark
+make test-jupyterlab
+make test-dbt
+make test-mlflow
+make test-trino
 ```
 
 ### Persistence Tests
@@ -265,6 +296,8 @@ View logs for all services (follows/streams).
 make logs           # All services
 make logs-tier0     # Tier 0 services
 make logs-tier1     # Tier 1 services
+make logs-tier2     # Tier 2 services
+make logs-tier3     # Tier 3 services
 ```
 
 **Options:**
@@ -284,6 +317,10 @@ make logs-valkey
 make logs-minio
 make logs-hive
 make logs-spark
+make logs-jupyterlab
+make logs-dbt
+make logs-mlflow
+make logs-trino
 ```
 
 **Equivalent to:**
@@ -360,6 +397,22 @@ make shell-spark-sql
 SHOW DATABASES;
 USE quickstart;
 SELECT * FROM customers LIMIT 10;
+```
+
+### Trino CLI
+
+#### `make sql-trino`
+Open the Trino CLI connected to the coordinator.
+
+**Usage:**
+```bash
+make sql-trino
+```
+
+**Example:**
+```sql
+SHOW CATALOGS;
+SHOW SCHEMAS FROM hive;
 ```
 
 ### MinIO Client

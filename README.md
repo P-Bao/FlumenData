@@ -154,6 +154,8 @@ Key documentation pages:
 # Service Management
 make init              # Complete initialization
 make up                # Start all services
+make up-tier2          # Start analytics & ML services
+make up-tier3          # Start orchestration & BI services
 make down              # Stop all services
 make restart           # Restart all services
 
@@ -161,17 +163,22 @@ make restart           # Restart all services
 make health            # Check all services
 make health-tier0      # Check foundation services
 make health-tier1      # Check data platform services
+make health-tier2      # Check analytics & ML services
+make health-tier3      # Check orchestration & BI services
 
 # Testing
 make test              # Run all tests
 make test-tier0        # Test Tier 0 services
 make test-tier1        # Test Tier 1 services
+make test-tier2        # Test Tier 2 services
+make test-tier3        # Test Tier 3 services
 
 # Interactive Shells
 make shell-spark       # Spark Scala shell
 make shell-pyspark     # PySpark Python shell
 make shell-spark-sql   # Spark SQL shell
 make shell-postgres    # PostgreSQL shell
+make sql-trino         # Trino CLI shell
 make mc                # MinIO client
 
 # Maintenance
@@ -197,15 +204,25 @@ FlumenData/
 │   ├── valkey.mk
 │   ├── minio.mk
 │   ├── hive.mk
-│   └── spark.mk
+│   ├── spark.mk
+│   ├── jupyterlab.mk
+│   ├── dbt.mk
+│   ├── mlflow.mk
+│   └── trino.mk
 ├── templates/                  # Configuration templates
 │   ├── hive/
 │   ├── spark/
 │   ├── minio/
-│   └── valkey/
+│   ├── valkey/
+│   ├── jupyterlab/
+│   ├── dbt/
+│   ├── mlflow/
+│   └── trino/
 ├── .env                        # Environment variables (not in git)
 ├── docker-compose.tier0.yml    # Foundation services
 ├── docker-compose.tier1.yml    # Data platform services
+├── docker-compose.tier2.yml    # Analytics & development services
+├── docker-compose.tier3.yml    # Orchestration & BI services
 ├── Makefile                    # Main orchestration
 ├── mkdocs.yml                 # Documentation configuration
 └── README.md                   # This file
@@ -225,8 +242,8 @@ FlumenData is perfect for:
 
 - ✅ **Tier 0 – Foundation**: PostgreSQL, Valkey, MinIO
 - ✅ **Tier 1 – Data Platform**: Spark, Hive Metastore, Delta Lake
-- 🔄 **Tier 2 – Development & ML**: JupyterLab, dbt, MLflow
-- 📋 **Tier 3 – Orchestration & BI**: Airflow, Trino, Superset
+- ✅ **Tier 2 – Development & ML**: JupyterLab, dbt, MLflow
+- 🔄 **Tier 3 – Orchestration & BI**: Trino (Superset & Airflow coming next)
 - 📋 **Tier 4 – Observability**: Prometheus, Grafana
 
 ## 🤝 Contributing

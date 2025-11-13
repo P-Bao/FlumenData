@@ -18,6 +18,7 @@ include makefiles/spark.mk
 include makefiles/jupyterlab.mk
 include makefiles/dbt.mk
 include makefiles/mlflow.mk
+include makefiles/trino.mk
 
 # Color output
 RED    := \033[0;31m
@@ -35,7 +36,7 @@ help: ## Display this help message
 
 ##@ Initialization
 
-init: banner config up-tier0 init-tier0 up-tier1 init-tier1 up-tier2 init-tier2 health summary ## Complete environment initialization
+init: banner config up-tier0 init-tier0 up-tier1 init-tier1 up-tier2 init-tier2 up-tier3 init-tier3 health summary ## Complete environment initialization
 	@echo "$(GREEN)✓ FlumenData initialized successfully!$(RESET)"
 
 banner:
@@ -51,7 +52,7 @@ banner:
 
 ##@ Configuration
 
-config: config-valkey config-minio config-hive config-spark config-jupyterlab config-dbt config-mlflow ## Generate all configuration files
+config: config-valkey config-minio config-hive config-spark config-jupyterlab config-dbt config-mlflow config-trino ## Generate all configuration files
 	@echo "$(GREEN)✓ All configurations generated$(RESET)"
 
 ##@ Docker Compose Management
@@ -75,10 +76,18 @@ up-tier2: config-jupyterlab config-dbt config-mlflow ## Start Tier 2 services (J
 	@echo "Get token: $(YELLOW)make token-jupyterlab$(RESET)"
 	@echo "$(YELLOW)MLflow UI:$(RESET) http://localhost:$(MLFLOW_PORT)"
 
-up: up-tier0 up-tier1 up-tier2 ## Start all services (Tier 0 + Tier 1 + Tier 2)
+up-tier3: config-trino ## Start Tier 3 services (Trino, Superset, Airflow)
+	@echo "$(BLUE)[tier3] Starting orchestration & BI services...$(RESET)"
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml -f docker-compose.tier2.yml -f docker-compose.tier3.yml up -d trino
+	@echo "$(GREEN)✓ Tier 3 services started$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Trino UI:$(RESET) http://localhost:$(TRINO_PORT)"
+
+up: up-tier0 up-tier1 up-tier2 up-tier3 ## Start all services (Tier 0 + Tier 1 + Tier 2 + Tier 3)
 
 down: ## Stop all services
 	@echo "$(YELLOW)Stopping all services...$(RESET)"
+	@$(DC) -f docker-compose.tier3.yml down 2>/dev/null || true
 	@$(DC) -f docker-compose.tier2.yml down 2>/dev/null || true
 	@$(DC) -f docker-compose.tier1.yml down 2>/dev/null || true
 	@$(DC) -f docker-compose.tier0.yml down
@@ -97,6 +106,9 @@ init-tier1: health-tier1 init-hive verify-hive ## Initialize Tier 1 services
 init-tier2: health-tier2 init-jupyterlab init-dbt init-mlflow ## Initialize Tier 2 services
 	@echo "$(GREEN)✓ Tier 2 initialized$(RESET)"
 
+init-tier3: health-tier3 init-trino ## Initialize Tier 3 services
+	@echo "$(GREEN)✓ Tier 3 initialized$(RESET)"
+
 ##@ Health Checks
 
 health-tier0: health-postgres health-valkey health-minio ## Check Tier 0 health
@@ -108,7 +120,10 @@ health-tier1: health-hive health-spark-master health-spark-workers ## Check Tier
 health-tier2: health-jupyterlab health-dbt health-mlflow ## Check Tier 2 health
 	@echo "$(GREEN)✓ Tier 2 healthy$(RESET)"
 
-health: health-tier0 health-tier1 health-tier2 ## Check all services health
+health-tier3: health-trino ## Check Tier 3 health
+	@echo "$(GREEN)✓ Tier 3 healthy$(RESET)"
+
+health: health-tier0 health-tier1 health-tier2 health-tier3 ## Check all services health
 	@echo "$(GREEN)✓ All services healthy$(RESET)"
 
 ##@ Testing
@@ -122,7 +137,10 @@ test-tier1: test-spark test-hive ## Test Tier 1 services
 test-tier2: test-jupyterlab test-dbt test-mlflow ## Test Tier 2 services
 	@echo "$(GREEN)✓ Tier 2 tests passed$(RESET)"
 
-test: test-tier0 test-tier1 test-tier2 ## Run all tests
+test-tier3: test-trino ## Test Tier 3 services
+	@echo "$(GREEN)✓ Tier 3 tests passed$(RESET)"
+
+test: test-tier0 test-tier1 test-tier2 test-tier3 ## Run all tests
 	@echo "$(GREEN)✓ All tests passed$(RESET)"
 
 test-integration: ## Test Delta Lake + Spark + Hive integration
@@ -170,6 +188,7 @@ clean: down ## Stop services and remove volumes (WARNING: deletes all data)
 	read REPLY; \
 	case "$$REPLY" in \
 		[Yy]*) \
+			$(DC) -f docker-compose.tier3.yml down -v; \
 			$(DC) -f docker-compose.tier2.yml down -v; \
 			$(DC) -f docker-compose.tier1.yml down -v; \
 			$(DC) -f docker-compose.tier0.yml down -v; \
@@ -184,7 +203,7 @@ clean: down ## Stop services and remove volumes (WARNING: deletes all data)
 ##@ Logs
 
 logs: ## Show logs for all services
-	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml -f docker-compose.tier2.yml logs -f
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml -f docker-compose.tier2.yml -f docker-compose.tier3.yml logs -f
 
 logs-tier0: ## Show logs for Tier 0 services
 	@$(DC) -f docker-compose.tier0.yml logs -f
@@ -194,6 +213,9 @@ logs-tier1: ## Show logs for Tier 1 services
 
 logs-tier2: ## Show logs for Tier 2 services
 	@$(DC) -f docker-compose.tier2.yml logs -f jupyterlab dbt mlflow
+
+logs-tier3: ## Show logs for Tier 3 services
+	@$(DC) -f docker-compose.tier3.yml logs -f trino
 
 logs-postgres: ## Show PostgreSQL logs
 	@$(DC) -f docker-compose.tier0.yml logs -f postgres
@@ -210,7 +232,7 @@ logs-hive: ## Show Hive Metastore logs
 ##@ Service Status
 
 ps: ## Show running containers
-	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml -f docker-compose.tier2.yml ps
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml -f docker-compose.tier2.yml -f docker-compose.tier3.yml ps
 
 status: ps ## Alias for ps
 
@@ -234,6 +256,9 @@ summary: ## Show environment summary
 	@echo "  • JupyterLab      → http://localhost:8888 (run 'make token-jupyterlab')"
 	@echo "  • dbt CLI         → run 'make shell-dbt' to open the container"
 	@echo "  • MLflow UI       → http://localhost:$(MLFLOW_PORT)"
+	@echo ""
+	@echo "$(YELLOW)Tier 3 - Orchestration & BI:$(RESET)"
+	@echo "  • Trino           → http://localhost:$(TRINO_PORT)"
 	@echo ""
 	@echo "$(YELLOW)Lakehouse Architecture:$(RESET)"
 	@echo "  • Catalog       : Hive Metastore (2-level: database.table)"
