@@ -6,7 +6,8 @@
 SUPERSET_CONFIG_DIR := config/superset
 SUPERSET_ENV_FILE := $(SUPERSET_CONFIG_DIR)/superset.env
 SUPERSET_APP_CONFIG := $(SUPERSET_CONFIG_DIR)/superset_config.py
-SUPERSET_CONTAINER := flumen_superset
+SUPERSET_CONTAINER := superset
+COMPOSE_STACK := docker-compose.tier0.yml docker-compose.tier1.yml docker-compose.tier2.yml docker-compose.tier3.yml
 SUPERSET_IMAGE := flumendata/superset:$(SUPERSET_VERSION)
 
 # =============================================================================
@@ -71,10 +72,11 @@ superset-db: ## Ensure Superset metadata database exists in PostgreSQL
 .PHONY: health-superset
 health-superset: ## Health check for Superset UI
 	@echo "Checking Superset health..."
-	@if curl -sf http://localhost:$(SUPERSET_PORT)/health >/dev/null; then \
+	@if docker compose $(foreach f,$(COMPOSE_STACK),-f $f) ps -q $(SUPERSET_CONTAINER) >/dev/null; then \
+		docker compose $(foreach f,$(COMPOSE_STACK),-f $f) exec -T $(SUPERSET_CONTAINER) curl -sf http://localhost:8088/health >/dev/null && \
 		echo "✓ Superset is reachable at http://localhost:$(SUPERSET_PORT)"; \
 	else \
-		echo "✗ Superset did not respond on port $(SUPERSET_PORT)"; \
+		echo "✗ Superset container is not running"; \
 		exit 1; \
 	fi
 
@@ -84,8 +86,8 @@ health-superset: ## Health check for Superset UI
 
 .PHONY: logs-superset
 logs-superset: ## Tail Superset logs
-	@docker compose -f docker-compose.tier3.yml logs -f superset
+	@docker compose $(foreach f,$(COMPOSE_STACK),-f $f) logs -f superset
 
 .PHONY: shell-superset
 shell-superset: ## Open shell inside Superset container
-	docker exec -it $(SUPERSET_CONTAINER) bash
+	docker compose $(foreach f,$(COMPOSE_STACK),-f $f) exec $(SUPERSET_CONTAINER) bash

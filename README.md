@@ -131,6 +131,7 @@ After running `make init`, access:
 - **JupyterLab**: http://localhost:8888 - Data exploration notebooks (`make token-jupyterlab` to fetch the access token)
 - **MLflow Tracking UI**: http://localhost:${MLFLOW_PORT} - Experiment tracking dashboard
 - **Superset**: http://localhost:${SUPERSET_PORT} - BI dashboards (login: `admin` / `admin123`)
+- **Airflow**: http://localhost:${AIRFLOW_PORT} - Workflow orchestration UI (login: `admin` / `admin123`)
 
 ## 📖 Documentation
 
@@ -146,6 +147,7 @@ Key documentation pages:
 - [Hive Metastore](docs/en/services/hive.md)
 - [Apache Spark](docs/en/services/spark.md)
 - [Apache Superset](docs/en/services/superset.md)
+- [Apache Airflow](docs/en/services/airflow.md)
 - [Configuration](docs/en/configuration/environment.md)
 - [Make Commands Reference](docs/en/configuration/commands.md)
 - [Contributing Guide](docs/en/development/contributing.md)
@@ -213,7 +215,8 @@ FlumenData/
 │   ├── dbt.mk
 │   ├── mlflow.mk
 │   ├── trino.mk
-│   └── superset.mk
+│   ├── superset.mk
+│   └── airflow.mk
 ├── templates/                  # Configuration templates
 │   ├── hive/
 │   ├── spark/
@@ -223,7 +226,8 @@ FlumenData/
 │   ├── dbt/
 │   ├── mlflow/
 │   ├── trino/
-│   └── superset/
+│   ├── superset/
+│   └── airflow/
 ├── .env                        # Environment variables (not in git)
 ├── docker-compose.tier0.yml    # Foundation services
 ├── docker-compose.tier1.yml    # Data platform services
@@ -249,7 +253,7 @@ FlumenData is perfect for:
 - ✅ **Tier 0 – Foundation**: PostgreSQL, Valkey, MinIO
 - ✅ **Tier 1 – Data Platform**: Spark, Hive Metastore, Delta Lake
 - ✅ **Tier 2 – Development & ML**: JupyterLab, dbt, MLflow
-- 🔄 **Tier 3 – Orchestration & BI**: Trino, Superset (Airflow coming next)
+- 🔄 **Tier 3 – Orchestration & BI**: Trino, Superset, Airflow
 - 📋 **Tier 4 – Observability**: Prometheus, Grafana
 
 ## 🤝 Contributing

@@ -65,6 +65,7 @@ make config-dbt
 make config-mlflow
 make config-trino
 make config-superset
+make config-airflow
 ```
 
 **When to use:**
@@ -108,7 +109,7 @@ make up-tier2  # JupyterLab, dbt, MLflow
 Start orchestration & BI services.
 
 ```bash
-make up-tier3  # Trino + Superset (Airflow later)
+make up-tier3  # Trino + Superset + Airflow
 ```
 
 ### Stopping Services
@@ -176,7 +177,7 @@ make health
 make health-tier0   # PostgreSQL, Valkey, MinIO
 make health-tier1   # Hive Metastore, Spark cluster
 make health-tier2   # JupyterLab, dbt, MLflow
-make health-tier3   # Trino + Superset
+make health-tier3   # Trino + Superset + Airflow
 ```
 
 ### Individual Service Health
@@ -193,6 +194,7 @@ make health-dbt
 make health-mlflow
 make health-trino
 make health-superset
+make health-airflow
 ```
 
 ## Superset Commands
@@ -216,6 +218,36 @@ Open an interactive shell inside the Superset container (handy for debugging or 
 
 ```bash
 make shell-superset
+```
+
+## Airflow Commands
+
+### `make config-airflow`
+Render the Airflow environment file (`config/airflow/airflow.env`) with the credentials from `.env`.
+
+```bash
+make config-airflow
+```
+
+### `make airflow-db`
+Create the `$(AIRFLOW_DB_NAME)` database inside PostgreSQL if it doesn’t already exist.
+
+```bash
+make airflow-db
+```
+
+### `make logs-airflow`
+Tail the Airflow container logs (webserver + scheduler).
+
+```bash
+make logs-airflow
+```
+
+### `make shell-airflow`
+Open a shell inside the Airflow container for ad‑hoc debugging.
+
+```bash
+make shell-airflow
 ```
 
 ## Testing Commands

@@ -62,6 +62,7 @@ plugins:
           dbt: dbt
           MLflow: MLflow
           Superset: Superset
+          Airflow: Airflow
           Getting Started: Começando
           Architecture: Arquitetura
           Configuration: Configuração
@@ -132,6 +133,7 @@ nav:
       - Tier 3 - Orchestration & BI:
           - Trino: services/trino.md
           - Superset: services/superset.md
+          - Airflow: services/airflow.md
   - Configuration:
       - Environment Variables: configuration/environment.md
       - Make Commands: configuration/commands.md

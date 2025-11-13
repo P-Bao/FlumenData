@@ -341,6 +341,39 @@ make config-superset
 SUPERSET_VERSION=5.1.0
 make build-superset
 make up-tier3
+
+### Airflow
+
+```bash
+# Airflow all-in-one
+AIRFLOW_VERSION=2.10.2             # Apache Airflow image tag
+AIRFLOW_PORT=8085                  # Host/UI port mapped to webserver 8080
+AIRFLOW_DB_NAME=airflow            # Metadata database inside PostgreSQL
+AIRFLOW_ADMIN_USERNAME=admin       # Initial admin user
+AIRFLOW_ADMIN_PASSWORD=admin123    # Initial admin password
+AIRFLOW_ADMIN_EMAIL=admin@flumen.local
+AIRFLOW_ADMIN_FIRST_NAME=Airflow
+AIRFLOW_ADMIN_LAST_NAME=Admin
+AIRFLOW_FERNET_KEY=dXNlLWFjdHVhbC1mZXJuZXQta2V5LWhlcmUtbGF0ZXIh
+AIRFLOW_SECRET_KEY=flumen_airflow_secret
+```
+
+**Used by:**
+- `templates/airflow/airflow.env.tpl`
+- `makefiles/airflow.mk` (config + db bootstrap)
+- `docker-compose.tier3.yml` Airflow service definition
+
+**Examples:**
+```bash
+# Run Airflow on a different port
+AIRFLOW_PORT=8095
+make up-tier3
+
+# Rotate admin credentials
+AIRFLOW_ADMIN_USERNAME=orchestrator
+AIRFLOW_ADMIN_PASSWORD="$(openssl rand -base64 16)"
+make config-airflow
+```
 ```
 
 ## Advanced Configuration

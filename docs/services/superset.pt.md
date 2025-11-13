@@ -27,7 +27,7 @@
 make build-superset    # (Opcional) constrói a imagem customizada
 make config-superset   # Renderiza env + config
 make superset-db       # Garante o banco de metadados no PostgreSQL
-make up-tier3          # Sobe Trino + Superset
+make up-tier3          # Sobe Trino + Superset + Airflow
 make health-superset   # Verifica saúde via HTTP
 make logs-superset     # Segue os logs
 make shell-superset    # Abre bash dentro do container

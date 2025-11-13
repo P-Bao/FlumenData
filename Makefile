@@ -20,6 +20,7 @@ include makefiles/dbt.mk
 include makefiles/mlflow.mk
 include makefiles/trino.mk
 include makefiles/superset.mk
+include makefiles/airflow.mk
 
 # Color output
 RED    := \033[0;31m
@@ -53,7 +54,7 @@ banner:
 
 ##@ Configuration
 
-config: config-valkey config-minio config-hive config-spark config-jupyterlab config-dbt config-mlflow config-trino config-superset ## Generate all configuration files
+config: config-valkey config-minio config-hive config-spark config-jupyterlab config-dbt config-mlflow config-trino config-superset config-airflow ## Generate all configuration files
 	@echo "$(GREEN)✓ All configurations generated$(RESET)"
 
 ##@ Docker Compose Management
@@ -77,13 +78,14 @@ up-tier2: config-jupyterlab config-dbt config-mlflow ## Start Tier 2 services (J
 	@echo "Get token: $(YELLOW)make token-jupyterlab$(RESET)"
 	@echo "$(YELLOW)MLflow UI:$(RESET) http://localhost:$(MLFLOW_PORT)"
 
-up-tier3: config-trino config-superset superset-db ## Start Tier 3 services (Trino, Superset, Airflow)
+up-tier3: config-trino config-superset config-airflow superset-db airflow-db ## Start Tier 3 services (Trino, Superset, Airflow)
 	@echo "$(BLUE)[tier3] Starting orchestration & BI services...$(RESET)"
-	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml -f docker-compose.tier2.yml -f docker-compose.tier3.yml up -d trino superset
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml -f docker-compose.tier2.yml -f docker-compose.tier3.yml up -d trino superset airflow
 	@echo "$(GREEN)✓ Tier 3 services started$(RESET)"
 	@echo ""
 	@echo "$(YELLOW)Trino UI:$(RESET) http://localhost:$(TRINO_PORT)"
 	@echo "$(YELLOW)Superset UI:$(RESET) http://localhost:$(SUPERSET_PORT)"
+	@echo "$(YELLOW)Airflow UI:$(RESET) http://localhost:$(AIRFLOW_PORT)"
 
 up: up-tier0 up-tier1 up-tier2 up-tier3 ## Start all services (Tier 0 + Tier 1 + Tier 2 + Tier 3)
 
@@ -122,7 +124,7 @@ health-tier1: health-hive health-spark-master health-spark-workers ## Check Tier
 health-tier2: health-jupyterlab health-dbt health-mlflow ## Check Tier 2 health
 	@echo "$(GREEN)✓ Tier 2 healthy$(RESET)"
 
-health-tier3: health-trino health-superset ## Check Tier 3 health
+health-tier3: health-trino health-superset health-airflow ## Check Tier 3 health
 	@echo "$(GREEN)✓ Tier 3 healthy$(RESET)"
 
 health: health-tier0 health-tier1 health-tier2 health-tier3 ## Check all services health

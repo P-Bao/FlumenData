@@ -18,7 +18,7 @@
 
 ## Usage
 ```bash
-make up-tier3          # Starts Trino (requires tiers 0–2 running)
+make up-tier3          # Starts Trino + Superset + Airflow (requires tiers 0–2 running)
 make shell-trino       # Opens a shell inside the container
 make sql-trino         # Launches the CLI connected to the coordinator
 ```

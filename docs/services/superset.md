@@ -27,7 +27,7 @@
 make build-superset    # Build custom image (auto-run by compose if skipped)
 make config-superset   # Render env + config
 make superset-db       # Ensure metadata database exists in PostgreSQL
-make up-tier3          # Starts Trino + Superset
+make up-tier3          # Starts Trino + Superset + Airflow
 make health-superset   # HTTP health probe
 make logs-superset     # Tail logs
 make shell-superset    # Bash shell inside the container

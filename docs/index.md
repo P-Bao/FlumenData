@@ -187,13 +187,14 @@ After running `make init`, access these UIs:
 - **JupyterLab**: http://localhost:8888 (run `make token-jupyterlab` for access)
 - **MLflow Tracking UI**: http://localhost:${MLFLOW_PORT}
 - **Superset**: http://localhost:${SUPERSET_PORT} (login: `admin` / `admin123`)
+- **Airflow**: http://localhost:${AIRFLOW_PORT} (login: `admin` / `admin123`)
 
 ## Roadmap
 
 - ✅ **Tier 0 – Foundation**: PostgreSQL, Valkey, MinIO
 - ✅ **Tier 1 – Data Platform**: Spark, Hive Metastore, Delta Lake
 - 🔄 **Tier 2 – Development & ML**: JupyterLab, dbt, MLflow
-- 🔄 **Tier 3 – Orchestration & BI**: Trino, Superset (Airflow next)
+- 🔄 **Tier 3 – Orchestration & BI**: Trino, Superset, Airflow
 - 📋 **Tier 4 – Observability**: Prometheus, Grafana
 
 ## Contributing

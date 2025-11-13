@@ -18,7 +18,7 @@
 
 ## Uso
 ```bash
-make up-tier3          # Sobe o Trino (requer tiers 0–2 ativos)
+make up-tier3          # Sobe Trino + Superset + Airflow (requer tiers 0–2 ativos)
 make shell-trino       # Abre um shell dentro do container
 make sql-trino         # Inicia o CLI conectado ao coordenador
 ```
