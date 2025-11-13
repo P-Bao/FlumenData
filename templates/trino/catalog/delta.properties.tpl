@@ -1,0 +1,9 @@
+connector.name=delta_lake
+hive.metastore.uri=${HIVE_METASTORE_URI}
+delta.hive-catalog-name=hive
+fs.native-s3.enabled=true
+s3.aws-access-key=${MINIO_ROOT_USER}
+s3.aws-secret-key=${MINIO_ROOT_PASSWORD}
+s3.endpoint=${MINIO_SERVER_URL}
+s3.path-style-access=true
+s3.region=us-east-1

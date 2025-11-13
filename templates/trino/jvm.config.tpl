@@ -6,3 +6,5 @@
 -XX:+ExplicitGCInvokesConcurrent
 -XX:+HeapDumpOnOutOfMemoryError
 -XX:+ExitOnOutOfMemoryError
+-XX:+UnlockDiagnosticVMOptions
+-XX:G1NumCollectionsKeepPinned=10000000

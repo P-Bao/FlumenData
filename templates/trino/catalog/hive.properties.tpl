@@ -1,12 +1,9 @@
-connector.name=hive-hadoop2
+connector.name=hive
 hive.metastore.uri=${HIVE_METASTORE_URI}
-hive.metastore.cache.cache-missing=true
-hive.allow-drop-table=true
 hive.non-managed-table-writes-enabled=true
 hive.s3.aws-access-key=${MINIO_ROOT_USER}
 hive.s3.aws-secret-key=${MINIO_ROOT_PASSWORD}
 hive.s3.endpoint=${MINIO_SERVER_URL}
 hive.s3.path-style-access=true
 hive.s3.ssl.enabled=false
-hive.s3.aws-region=us-east-1
 hive.s3.max-connections=20

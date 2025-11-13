@@ -14,10 +14,12 @@ TRINO_PORT ?= 8082
 # =============================================================================
 
 .PHONY: config-trino
-config-trino: $(TRINO_CONFIG_DIR)/config.properties \
-	$(TRINO_CONFIG_DIR)/node.properties \
-	$(TRINO_CONFIG_DIR)/jvm.config \
-	$(TRINO_CATALOG_DIR)/hive.properties ## Generate Trino configuration
+	config-trino: $(TRINO_CONFIG_DIR)/config.properties \
+		$(TRINO_CONFIG_DIR)/node.properties \
+		$(TRINO_CONFIG_DIR)/jvm.config \
+		$(TRINO_CATALOG_DIR)/hive.properties \
+		$(TRINO_CATALOG_DIR)/delta.properties \
+		$(TRINO_CATALOG_DIR)/lakehouse.properties ## Generate Trino configuration
 	@echo "✓ Trino configuration ready at $(TRINO_CONFIG_DIR)"
 
 $(TRINO_CONFIG_DIR)/config.properties: $(TRINO_TEMPLATE_DIR)/config.properties.tpl .env
@@ -37,6 +39,16 @@ $(TRINO_CONFIG_DIR)/jvm.config: $(TRINO_TEMPLATE_DIR)/jvm.config.tpl
 
 $(TRINO_CATALOG_DIR)/hive.properties: $(TRINO_TEMPLATE_DIR)/catalog/hive.properties.tpl .env
 	@echo "Rendering Trino Hive catalog..."
+	@mkdir -p $(TRINO_CATALOG_DIR)
+	@envsubst < $< > $@
+
+$(TRINO_CATALOG_DIR)/delta.properties: $(TRINO_TEMPLATE_DIR)/catalog/delta.properties.tpl .env
+	@echo "Rendering Trino Delta Lake catalog..."
+	@mkdir -p $(TRINO_CATALOG_DIR)
+	@envsubst < $< > $@
+
+$(TRINO_CATALOG_DIR)/lakehouse.properties: $(TRINO_TEMPLATE_DIR)/catalog/lakehouse.properties.tpl .env
+	@echo "Rendering Trino Lakehouse catalog..."
 	@mkdir -p $(TRINO_CATALOG_DIR)
 	@envsubst < $< > $@
 
