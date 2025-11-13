@@ -130,6 +130,7 @@ After running `make init`, access:
   - Password: `minioadmin123`
 - **JupyterLab**: http://localhost:8888 - Data exploration notebooks (`make token-jupyterlab` to fetch the access token)
 - **MLflow Tracking UI**: http://localhost:${MLFLOW_PORT} - Experiment tracking dashboard
+- **Superset**: http://localhost:${SUPERSET_PORT} - BI dashboards (login: `admin` / `admin123`)
 
 ## 📖 Documentation
 
@@ -144,6 +145,7 @@ Key documentation pages:
 - [Architecture Deep Dive](docs/en/getting-started/architecture.md)
 - [Hive Metastore](docs/en/services/hive.md)
 - [Apache Spark](docs/en/services/spark.md)
+- [Apache Superset](docs/en/services/superset.md)
 - [Configuration](docs/en/configuration/environment.md)
 - [Make Commands Reference](docs/en/configuration/commands.md)
 - [Contributing Guide](docs/en/development/contributing.md)
@@ -156,6 +158,7 @@ make init              # Complete initialization
 make up                # Start all services
 make up-tier2          # Start analytics & ML services
 make up-tier3          # Start orchestration & BI services
+make build-superset    # Build Superset image with drivers
 make down              # Stop all services
 make restart           # Restart all services
 
@@ -195,7 +198,8 @@ FlumenData/
 ├── config/                     # Generated configuration (DO NOT EDIT)
 ├── docker/                     # Custom Dockerfiles
 │   ├── hive.Dockerfile        # Hive Metastore + PostgreSQL JDBC
-│   └── spark.Dockerfile        # Spark with health checks
+│   ├── spark.Dockerfile       # Spark with health checks
+│   └── superset.Dockerfile    # Superset with psycopg2 + sqlalchemy-trino
 ├── docs/                       # MkDocs Material documentation
 │   ├── en/                    # English documentation
 │   └── pt/                    # Portuguese documentation
@@ -208,7 +212,8 @@ FlumenData/
 │   ├── jupyterlab.mk
 │   ├── dbt.mk
 │   ├── mlflow.mk
-│   └── trino.mk
+│   ├── trino.mk
+│   └── superset.mk
 ├── templates/                  # Configuration templates
 │   ├── hive/
 │   ├── spark/
@@ -217,7 +222,8 @@ FlumenData/
 │   ├── jupyterlab/
 │   ├── dbt/
 │   ├── mlflow/
-│   └── trino/
+│   ├── trino/
+│   └── superset/
 ├── .env                        # Environment variables (not in git)
 ├── docker-compose.tier0.yml    # Foundation services
 ├── docker-compose.tier1.yml    # Data platform services
@@ -243,7 +249,7 @@ FlumenData is perfect for:
 - ✅ **Tier 0 – Foundation**: PostgreSQL, Valkey, MinIO
 - ✅ **Tier 1 – Data Platform**: Spark, Hive Metastore, Delta Lake
 - ✅ **Tier 2 – Development & ML**: JupyterLab, dbt, MLflow
-- 🔄 **Tier 3 – Orchestration & BI**: Trino (Superset & Airflow coming next)
+- 🔄 **Tier 3 – Orchestration & BI**: Trino, Superset (Airflow coming next)
 - 📋 **Tier 4 – Observability**: Prometheus, Grafana
 
 ## 🤝 Contributing

@@ -64,6 +64,7 @@ make config-jupyterlab
 make config-dbt
 make config-mlflow
 make config-trino
+make config-superset
 ```
 
 **When to use:**
@@ -107,7 +108,7 @@ make up-tier2  # JupyterLab, dbt, MLflow
 Start orchestration & BI services.
 
 ```bash
-make up-tier3  # Trino (Superset/Airflow later)
+make up-tier3  # Trino + Superset (Airflow later)
 ```
 
 ### Stopping Services
@@ -175,7 +176,7 @@ make health
 make health-tier0   # PostgreSQL, Valkey, MinIO
 make health-tier1   # Hive Metastore, Spark cluster
 make health-tier2   # JupyterLab, dbt, MLflow
-make health-tier3   # Trino (and future Tier 3 services)
+make health-tier3   # Trino + Superset
 ```
 
 ### Individual Service Health
@@ -191,6 +192,30 @@ make health-jupyterlab
 make health-dbt
 make health-mlflow
 make health-trino
+make health-superset
+```
+
+## Superset Commands
+
+### `make build-superset`
+Build the custom Superset image (includes `psycopg2-binary` + `sqlalchemy-trino`). Compose will trigger a build automatically, but running this explicitly is useful after bumping `SUPERSET_VERSION` or changing `docker/superset.Dockerfile`.
+
+```bash
+make build-superset
+```
+
+### `make logs-superset`
+Tail only the Superset container logs.
+
+```bash
+make logs-superset
+```
+
+### `make shell-superset`
+Open an interactive shell inside the Superset container (handy for debugging or running `superset` CLI commands).
+
+```bash
+make shell-superset
 ```
 
 ## Testing Commands

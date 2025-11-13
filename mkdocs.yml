@@ -61,6 +61,7 @@ plugins:
           JupyterLab: JupyterLab
           dbt: dbt
           MLflow: MLflow
+          Superset: Superset
           Getting Started: Começando
           Architecture: Arquitetura
           Configuration: Configuração
@@ -130,6 +131,7 @@ nav:
           - MLflow: services/mlflow.md
       - Tier 3 - Orchestration & BI:
           - Trino: services/trino.md
+          - Superset: services/superset.md
   - Configuration:
       - Environment Variables: configuration/environment.md
       - Make Commands: configuration/commands.md

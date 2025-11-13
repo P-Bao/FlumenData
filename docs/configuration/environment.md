@@ -305,6 +305,44 @@ TRINO_VERSION=448
 make up-tier3
 ```
 
+### Superset
+
+```bash
+# Superset BI UI
+SUPERSET_VERSION=5.0.0            # Apache Superset image tag
+SUPERSET_PORT=8088                # Host/UI port
+SUPERSET_DB_NAME=superset         # Metadata database inside PostgreSQL
+SUPERSET_SECRET_KEY=flumen_superset_secret
+SUPERSET_ADMIN_USERNAME=admin
+SUPERSET_ADMIN_PASSWORD=admin123
+SUPERSET_ADMIN_EMAIL=admin@flumen.local
+SUPERSET_ADMIN_FIRST_NAME=Superset
+SUPERSET_ADMIN_LAST_NAME=Admin
+```
+
+**Used by:**
+- `templates/superset/superset.env.tpl` and `superset_config.py.tpl`
+- `makefiles/superset.mk` (config + database bootstrap)
+- `docker-compose.tier3.yml` (service definition, ports, command)
+- `docker/superset.Dockerfile` build args
+
+**Examples:**
+```bash
+# Serve Superset on a different port
+SUPERSET_PORT=8090
+make up-tier3
+
+# Rotate admin credentials
+SUPERSET_ADMIN_USERNAME=bi_admin
+SUPERSET_ADMIN_PASSWORD="$(openssl rand -hex 12)"
+make config-superset
+
+# Upgrade Superset version (remember to rebuild the image)
+SUPERSET_VERSION=5.1.0
+make build-superset
+make up-tier3
+```
+
 ## Advanced Configuration
 
 ### S3A Performance Tuning

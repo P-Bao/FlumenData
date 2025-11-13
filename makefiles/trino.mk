@@ -14,7 +14,7 @@ TRINO_PORT ?= 8082
 # =============================================================================
 
 .PHONY: config-trino
-	config-trino: $(TRINO_CONFIG_DIR)/config.properties \
+config-trino: $(TRINO_CONFIG_DIR)/config.properties \
 		$(TRINO_CONFIG_DIR)/node.properties \
 		$(TRINO_CONFIG_DIR)/jvm.config \
 		$(TRINO_CATALOG_DIR)/hive.properties \

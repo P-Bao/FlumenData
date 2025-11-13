@@ -1,0 +1,88 @@
+2025-11-13 18:25:56,898:INFO:superset.utils.screenshots:No PIL installation found
+
+2025-11-13 18:25:57,358:INFO:superset.utils.pdf:No PIL installation found
+
+Recognized Database Authentications.
+
+Error! User already exists admin
+
+Loaded your LOCAL configuration at [/app/superset_home/superset_config.py]
+
+2025-11-13 18:26:02,448:INFO:superset.initialization:Setting database isolation level to READ COMMITTED
+
+/app/.venv/lib/python3.10/site-packages/flask_limiter/extension.py:333: UserWarning: Using the in-memory storage for tracking rate limits as no storage was explicitly specified. This is not recommended for production use. See: https://flask-limiter.readthedocs.io#configuring-a-storage-backend⁠ for documentation about configuring the storage backend.
+
+  warnings.warn(
+
+2025-11-13 18:26:02,680:INFO:superset.utils.screenshots:No PIL installation found
+
+2025-11-13 18:26:03,164:INFO:superset.utils.pdf:No PIL installation found
+
+2025-11-13 18:26:05,151:INFO:superset.security.manager:Syncing role definition
+
+2025-11-13 18:26:05,181:INFO:superset.security.manager:Syncing Admin perms
+
+2025-11-13 18:26:05,186:INFO:superset.security.manager:Syncing Alpha perms
+
+2025-11-13 18:26:05,194:INFO:superset.security.manager:Syncing Gamma perms
+
+2025-11-13 18:26:05,200:INFO:superset.security.manager:Syncing sql_lab perms
+
+2025-11-13 18:26:05,205:INFO:superset.security.manager:Fetching a set of all perms to lookup which ones are missing
+
+2025-11-13 18:26:05,210:INFO:superset.security.manager:Creating missing datasource permissions.
+
+2025-11-13 18:26:05,215:INFO:superset.security.manager:Creating missing database permissions.
+
+2025-11-13 18:26:05,219:INFO:superset.security.manager:Cleaning faulty perms
+
+Cleaning up slice uuid from dashboard position json.. Done.      
+
+Cleaning up slice uuid from dashboard position json.. Done.      
+
+
+Error: class uri 'gevent' invalid or not found: 
+
+
+[Traceback (most recent call last):
+
+  File "/app/.venv/lib/python3.10/site-packages/gunicorn/workers/ggevent.py", line 12, in <module>
+
+    import gevent
+
+ModuleNotFoundError: No module named 'gevent'
+
+
+During handling of the above exception, another exception occurred:
+
+
+Traceback (most recent call last):
+
+  File "/app/.venv/lib/python3.10/site-packages/gunicorn/util.py", line 110, in load_class
+
+    mod = importlib.import_module('.'.join(components))
+
+  File "/usr/local/lib/python3.10/importlib/__init__.py", line 126, in import_module
+
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+
+  File "<frozen importlib._bootstrap>", line 1006, in _find_and_load_unlocked
+
+  File "<frozen importlib._bootstrap>", line 688, in _load_unlocked
+
+  File "<frozen importlib._bootstrap_external>", line 883, in exec_module
+
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+
+  File "/app/.venv/lib/python3.10/site-packages/gunicorn/workers/ggevent.py", line 14, in <module>
+
+    raise RuntimeError("gevent worker requires gevent 1.4 or higher")
+
+RuntimeError: gevent worker requires gevent 1.4 or higher
+
+]
+
