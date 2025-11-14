@@ -11,7 +11,7 @@
   - `AIRFLOW_VERSION` – tag da imagem Docker.
   - `AIRFLOW_PORT` – porta do host/UI (padrão `8085`).
   - `AIRFLOW_DB_NAME` – nome do banco de metadados dentro do PostgreSQL.
-  - `AIRFLOW_ADMIN_*` – credenciais do usuário admin inicial.
+  - `_AIRFLOW_WWW_USER_*` – credenciais do usuário admin inicial consumidas pelo entrypoint oficial.
   - `AIRFLOW_FERNET_KEY` e `AIRFLOW_SECRET_KEY` – chaves usadas para criptografar conexões e sessões.
 - Dependências em runtime:
   - **Banco de metadados**: PostgreSQL (Tier 0 compartilhado).
@@ -42,9 +42,9 @@ Altere esses valores no `.env` antes de rodar `make config-airflow` para evitar 
 
 ### Detalhes de Inicialização
 O comando do contêiner executa:
-1. `airflow db migrate` – aplica migrações no PostgreSQL compartilhado.
-2. `airflow users create ...` – cria o usuário admin de forma idempotente usando os valores do `.env`.
-3. Inicia o scheduler em background e o webserver (Gunicorn) em foreground.
+1. O entrypoint oficial do Airflow executa `airflow db migrate` sempre que `_AIRFLOW_DB_MIGRATE=true`.
+2. Esse mesmo entrypoint lê `_AIRFLOW_WWW_USER_*` e cria/atualiza o usuário admin antes do bootstrap, exatamente como no docker-compose oficial.
+3. O contêiner roda `airflow standalone`, que levanta scheduler, triggerer e API server/UI no mesmo processo.
 
 ## Solução de Problemas
 - **Erros no banco de metadados**: verifique se o PostgreSQL está saudável (Tier 0) e rode `make airflow-db` para criar o banco.

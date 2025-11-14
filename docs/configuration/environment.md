@@ -346,16 +346,19 @@ make up-tier3
 
 ```bash
 # Airflow all-in-one
-AIRFLOW_VERSION=2.10.2             # Apache Airflow image tag
+AIRFLOW_VERSION=3.1.2              # Apache Airflow image tag
 AIRFLOW_PORT=8085                  # Host/UI port mapped to webserver 8080
 AIRFLOW_DB_NAME=airflow            # Metadata database inside PostgreSQL
-AIRFLOW_ADMIN_USERNAME=admin       # Initial admin user
-AIRFLOW_ADMIN_PASSWORD=admin123    # Initial admin password
-AIRFLOW_ADMIN_EMAIL=admin@flumen.local
-AIRFLOW_ADMIN_FIRST_NAME=Airflow
-AIRFLOW_ADMIN_LAST_NAME=Admin
-AIRFLOW_FERNET_KEY=dXNlLWFjdHVhbC1mZXJuZXQta2V5LWhlcmUtbGF0ZXIh
 AIRFLOW_SECRET_KEY=flumen_airflow_secret
+_AIRFLOW_WWW_USER_CREATE=true      # Ask entrypoint to bootstrap a UI user
+_AIRFLOW_WWW_USER_USERNAME=admin
+_AIRFLOW_WWW_USER_PASSWORD=admin123
+_AIRFLOW_WWW_USER_EMAIL=admin@flumen.local
+_AIRFLOW_WWW_USER_FIRSTNAME=Airflow
+_AIRFLOW_WWW_USER_LASTNAME=Admin
+_AIRFLOW_WWW_USER_ROLE=Admin
+_PIP_ADDITIONAL_REQUIREMENTS=      # Optional dev-only packages to install on startup
+AIRFLOW_FERNET_KEY=dXNlLWFjdHVhbC1mZXJuZXQta2V5LWhlcmUtbGF0ZXIh
 ```
 
 **Used by:**
@@ -370,8 +373,8 @@ AIRFLOW_PORT=8095
 make up-tier3
 
 # Rotate admin credentials
-AIRFLOW_ADMIN_USERNAME=orchestrator
-AIRFLOW_ADMIN_PASSWORD="$(openssl rand -base64 16)"
+_AIRFLOW_WWW_USER_USERNAME=orchestrator
+_AIRFLOW_WWW_USER_PASSWORD="$(openssl rand -base64 16)"
 make config-airflow
 ```
 ```

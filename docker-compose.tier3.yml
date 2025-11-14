@@ -88,7 +88,7 @@ services:
   # =============================================================================
   airflow:
     container_name: flumen_airflow
-    image: apache/airflow:${AIRFLOW_VERSION:-2.10.2}
+    image: apache/airflow:${AIRFLOW_VERSION:-3.1.2}
     hostname: airflow
     depends_on:
       postgres:
@@ -99,21 +99,12 @@ services:
       - "${AIRFLOW_PORT:-8085}:8080"
     env_file:
       - ./config/airflow/airflow.env
-    environment:
-      AIRFLOW_UID: 50000
-      AIRFLOW_GID: 0
-      _PIP_ADDITIONAL_REQUIREMENTS: ""
     volumes:
       - airflow_dags:/opt/airflow/dags
       - airflow_logs:/opt/airflow/logs
       - airflow_plugins:/opt/airflow/plugins
-    entrypoint:
-      - /bin/bash
-      - -c
-    command: |
-      set -e
-      airflow db migrate
-      exec airflow standalone
+    command:
+      - standalone
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
