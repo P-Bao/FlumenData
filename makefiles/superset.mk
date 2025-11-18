@@ -72,13 +72,22 @@ superset-db: ## Ensure Superset metadata database exists in PostgreSQL
 .PHONY: health-superset
 health-superset: ## Health check for Superset UI
 	@echo "Checking Superset health..."
-	@if docker compose $(foreach f,$(COMPOSE_STACK),-f $f) ps -q $(SUPERSET_CONTAINER) >/dev/null; then \
-		docker compose $(foreach f,$(COMPOSE_STACK),-f $f) exec -T $(SUPERSET_CONTAINER) curl -sf http://localhost:8088/health >/dev/null && \
-		echo "✓ Superset is reachable at http://localhost:$(SUPERSET_PORT)"; \
-	else \
+	@if ! docker compose $(foreach f,$(COMPOSE_STACK),-f $f) ps -q $(SUPERSET_CONTAINER) >/dev/null; then \
 		echo "✗ Superset container is not running"; \
 		exit 1; \
 	fi
+	@TIMEOUT=60; \
+	while [ $$TIMEOUT -gt 0 ]; do \
+		if docker compose $(foreach f,$(COMPOSE_STACK),-f $f) exec -T $(SUPERSET_CONTAINER) curl -sf http://localhost:8088/health >/dev/null; then \
+			echo "✓ Superset is reachable at http://localhost:$(SUPERSET_PORT)"; \
+			exit 0; \
+		fi; \
+		sleep 2; \
+		TIMEOUT=$$((TIMEOUT-2)); \
+	done; \
+	echo "✗ Superset health endpoint did not respond in time"; \
+	docker compose $(foreach f,$(COMPOSE_STACK),-f $f) logs --tail=40 $(SUPERSET_CONTAINER); \
+	exit 1
 
 # =============================================================================
 # Utilities

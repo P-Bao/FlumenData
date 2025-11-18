@@ -229,7 +229,6 @@ After running `make init`, access these UIs:
 - ✅ **Tier 1 – Data Platform**: Spark, Hive Metastore, Delta Lake
 - ✅ **Tier 2 – Analytics & Development**: JupyterLab
 - ✅ **Tier 3 – SQL & BI**: Trino, Superset
-- 📋 **Tier 4 – Observability**: Prometheus, Grafana (planned)
 
 ## Contributing
 
