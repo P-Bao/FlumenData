@@ -1,7 +1,7 @@
 site_name: FlumenData
 site_description: Open Source Lakehouse Platform with Spark, Hive Metastore, and Delta Lake
 site_author: Luciano Mauda Junior
-site_url: https://www.linkedin.com/in/lucianomaudajunior/?locale=en_US
+site_url: https://www.flumendata.com
 
 repo_name: lucianomauda/FlumenData
 repo_url: https://github.com/lucianomauda/FlumenData

@@ -3,7 +3,7 @@
 Thumbs.db
 .vscode/
 .idea/
-.venv/
+.venv
 
 # Python/node caches (se vier a usar)
 __pycache__/
