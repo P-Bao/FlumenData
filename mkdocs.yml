@@ -10,6 +10,8 @@ edit_uri: edit/main/docs/
 theme:
   name: material
   language: en
+  logo: assets/images/flumendata-logoonly.png
+  favicon: assets/images/flumendata.ico
   palette:
     - scheme: default
       primary: blue
@@ -102,6 +104,9 @@ markdown_extensions:
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.tilde
+
+extra_css:
+  - assets/styles/brand.css
 
 extra:
   social:

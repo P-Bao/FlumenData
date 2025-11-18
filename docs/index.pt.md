@@ -1,7 +1,15 @@
 # FlumenData
 
-> Ambiente **Lakehouse** open-source, reproduzível, baseado em Docker Compose.
-> Suba tudo com um único comando: `make init`.
+<div class="fd-hero">
+  <img src="/assets/images/flumendata-logowithname.png" alt="FlumenData logo">
+  <p>Lakehouse componível baseado em Docker Compose, unindo Spark 4, Delta Lake 4, Trino, Superset e MinIO.</p>
+  <div class="fd-tags">
+    <span class="fd-tag trino">Trino SQL</span>
+    <span class="fd-tag jupiter">JupyterLab</span>
+    <span class="fd-tag superset">Superset BI</span>
+    <span class="fd-tag healthy">Tiers saudáveis</span>
+  </div>
+</div>
 
 !!! tip "Status do Projeto"
     **Tier 0 está validado**: PostgreSQL e MinIO possuem healthchecks, volumes nomeados e configurações em `/config`.
@@ -230,4 +238,47 @@ Após executar `make init`, acesse essas UIs:
 - ✅ **Tier 1 – Plataforma de Dados**: Spark, Hive Metastore, Delta Lake
 - ✅ **Tier 2 – Analytics & Desenvolvimento**: JupyterLab
 - ✅ **Tier 3 – SQL & BI**: Trino, Superset
+
+## Sistema de Marca
+
+<div class="fd-color-palette">
+  <div class="fd-color" data-token="dark">
+    <div class="fd-color-swatch"></div>
+    <h4>FD Dark</h4>
+    <p>#14171C · heróis e superfícies escuras</p>
+  </div>
+  <div class="fd-color" data-token="teal">
+    <div class="fd-color-swatch"></div>
+    <h4>FD Teal Deep</h4>
+    <p>#157983 · serviços fundacionais</p>
+  </div>
+  <div class="fd-color" data-token="cyan">
+    <div class="fd-color-swatch"></div>
+    <h4>FD Cyan</h4>
+    <p>#20EFFD · destaques Trino</p>
+  </div>
+  <div class="fd-color" data-token="orange">
+    <div class="fd-color-swatch"></div>
+    <h4>FD Orange</h4>
+    <p>#FDA931 · JupyterLab</p>
+  </div>
+  <div class="fd-color" data-token="blue">
+    <div class="fd-color-swatch"></div>
+    <h4>FD Blue</h4>
+    <p>#0082C8 · Superset / BI</p>
+  </div>
+  <div class="fd-color" data-token="lime">
+    <div class="fd-color-swatch"></div>
+    <h4>FD Lime</h4>
+    <p>#B8E762 · estados saudáveis</p>
+  </div>
+</div>
+
+### Tipografia
+
+- **Títulos / logotipo:** Space Grotesk (bold/semi-bold)
+- **Corpo:** Inter
+- **Código:** JetBrains Mono
+
+Os logos vivem em `assets/images/` e o tema Material usa o favicon/logotipo definidos no `mkdocs.yml`.
 

@@ -1,13 +1,23 @@
 # FlumenData
 
-> Um ambiente **Lakehouse** open-source, reproduzível, baseado em Docker Compose.
-> Inicie tudo com um único comando: `make init`.
+<p align="center">
+  <img src="docs/assets/images/flumendata-logowithname.png" alt="FlumenData" width="360">
+</p>
 
-[This README is also available in English](./README.md)
+<p align="center"><strong>Lakehouse componível baseado em Docker Compose • Spark 4 + Delta Lake 4 • Trino & Superset</strong></p>
 
-[![Docker](https://img.shields.io/badge/Docker-20.10%2B-blue.svg)](https://www.docker.com/)
-[![Spark](https://img.shields.io/badge/Spark-4.0.1-E25A1C.svg)](https://spark.apache.org/)
-[![Delta Lake](https://img.shields.io/badge/Delta%20Lake-4.0.0-00ADD8.svg)](https://delta.io/)
+<p align="center">
+  <a href="#-inicio-rapido">Início rápido</a> ·
+  <a href="#-arquitetura">Arquitetura</a> ·
+  <a href="#-sistema-de-marca">Sistema de marca</a> ·
+  <a href="./README.md">English</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Docker-20.10%2B-157983.svg" alt="Docker">
+  <img src="https://img.shields.io/badge/Spark-4.0.1-FDA931.svg" alt="Spark">
+  <img src="https://img.shields.io/badge/Delta%20Lake-4.0.0-20EFFD.svg" alt="Delta Lake">
+</p>
 
 ## 🎯 Visão Geral
 
@@ -204,6 +214,35 @@ make summary           # Visão geral do ambiente
 make reset             # Resetar e reinicializar
 make clean             # Remover tudo (DESTRUTIVO)
 ```
+
+## 🎨 Sistema de Marca
+
+| Token | Hex | Uso |
+|-------|-----|-----|
+| **FD Dark** | `#14171C` | Fundos de destaque, trechos em modo escuro |
+| **FD Cyan (Trino)** | `#20EFFD` | Referências ao Trino, destaques de consulta |
+| **FD Orange (JupyterLab)** | `#FDA931` | Badges de JupyterLab e experimentação |
+| **FD Blue / Teal (Superset)** | `#0082C8` | Elementos de BI / Superset |
+| **FD Lime** | `#B8E762` | Estados “healthy/running” |
+| **FD Teal Deep** | `#157983` | Serviços fundacionais (PostgreSQL/MinIO) e navegação |
+| **FD Light** | `#F5F7FB` | Fundos neutros, cards |
+| **FD Gray / Dark** | `#9CA3AF` / `#4B5563` | Texto secundário e estados neutros |
+
+- Respeite o mapeamento por serviço: **JupyterLab → laranja**, **Trino → ciano**, **Superset → azul/teal**, **fundação** → teal com detalhes em lime.
+- Use lime para “saudável/em execução” e cinza para neutro/inativo.
+- Limite diagramas a 2–3 cores vibrantes para manter clareza.
+
+## ✏️ Tipografia & Ativos
+
+| Contexto | Fonte | Observações |
+|----------|-------|-------------|
+| Títulos / logotipo | Space Grotesk (700 para H1, 600 para H2/H3) | Fonte de identidade usada no README e no MkDocs |
+| Corpo do texto | Inter (400/500) | Aplicada via `docs/assets/styles/brand.css` |
+| Código & configurações | JetBrains Mono (fallback: Fira Code) | Comandos, SQL, YAML e docker-compose |
+
+- A documentação carrega essas fontes e a paleta via `docs/assets/styles/brand.css`.
+- Utilize os logos em `docs/assets/images/` (`flumendata-logowithname.png`, `flumendata-logoonly.png`, `flumendata.ico`) para heróis, diagramas e favicons.
+- Em badges e cards, mantenha a paleta para preservar a identidade visual.
 
 ## 📁 Estrutura do Projeto
 

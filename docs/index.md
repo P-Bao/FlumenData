@@ -1,7 +1,15 @@
 # FlumenData
 
-> A reproducible, Docker Compose–based open‑source **Lakehouse** environment.
-> Start everything with a single command: `make init`.
+<div class="fd-hero">
+  <img src="/assets/images/flumendata-logowithname.png" alt="FlumenData logo">
+  <p>Composable, Docker Compose–based Lakehouse with Spark 4, Delta Lake 4, Trino, Superset, and MinIO.</p>
+  <div class="fd-tags">
+    <span class="fd-tag trino">Trino SQL</span>
+    <span class="fd-tag jupiter">JupyterLab</span>
+    <span class="fd-tag superset">Superset BI</span>
+    <span class="fd-tag healthy">Healthy tiers</span>
+  </div>
+</div>
 
 !!! tip "Project Status"
     **Tier 0 is validated**: PostgreSQL and MinIO expose healthchecks, named volumes, and generated config under `/config`.
@@ -230,4 +238,47 @@ After running `make init`, access these UIs:
 - ✅ **Tier 1 – Data Platform**: Spark, Hive Metastore, Delta Lake
 - ✅ **Tier 2 – Analytics & Development**: JupyterLab
 - ✅ **Tier 3 – SQL & BI**: Trino, Superset
+
+## Brand System
+
+<div class="fd-color-palette">
+  <div class="fd-color" data-token="dark">
+    <div class="fd-color-swatch"></div>
+    <h4>FD Dark</h4>
+    <p>#14171C · hero + dark surfaces</p>
+  </div>
+  <div class="fd-color" data-token="teal">
+    <div class="fd-color-swatch"></div>
+    <h4>FD Teal Deep</h4>
+    <p>#157983 · foundation tiers</p>
+  </div>
+  <div class="fd-color" data-token="cyan">
+    <div class="fd-color-swatch"></div>
+    <h4>FD Cyan</h4>
+    <p>#20EFFD · Trino highlights</p>
+  </div>
+  <div class="fd-color" data-token="orange">
+    <div class="fd-color-swatch"></div>
+    <h4>FD Orange</h4>
+    <p>#FDA931 · JupyterLab</p>
+  </div>
+  <div class="fd-color" data-token="blue">
+    <div class="fd-color-swatch"></div>
+    <h4>FD Blue</h4>
+    <p>#0082C8 · Superset</p>
+  </div>
+  <div class="fd-color" data-token="lime">
+    <div class="fd-color-swatch"></div>
+    <h4>FD Lime</h4>
+    <p>#B8E762 · healthy states</p>
+  </div>
+</div>
+
+### Typography
+
+- **Headings / logotype:** Space Grotesk (loaded via Google Fonts)
+- **Body text:** Inter (site default)
+- **Code:** JetBrains Mono (shell, SQL, YAML)
+
+Logos live under `assets/images/` and the Material theme picks up the favicon/logo automatically via `mkdocs.yml`.
 
