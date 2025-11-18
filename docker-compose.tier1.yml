@@ -127,6 +127,7 @@ services:
       retries: 30
 
 volumes:
+  # Cache/temporary volumes (can be regenerated)
   spark_conf:
     name: flumen_spark_conf
   spark_ivy:

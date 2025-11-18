@@ -36,3 +36,20 @@ define wait_for_healthy
 		sleep 1; \
 	done
 endef
+
+# Initialize data directories for bind mounts
+# Usage: make init-data-dirs
+.PHONY: init-data-dirs
+init-data-dirs:
+	@echo "[init] Creating data directories at $(DATA_DIR)..."
+	@mkdir -p "$(DATA_DIR)/minio/lakehouse"
+	@mkdir -p "$(DATA_DIR)/minio/storage"
+	@mkdir -p "$(DATA_DIR)/notebooks/_examples"
+	@echo "[init] ✓ Data directories created"
+	@echo "[init] "
+	@echo "[init] Data location: $(DATA_DIR)"
+	@echo "[init] - MinIO (lakehouse data): $(DATA_DIR)/minio/"
+	@echo "[init] - Notebooks (your work):  $(DATA_DIR)/notebooks/"
+	@echo "[init] "
+	@echo "[init] 💡 Tip: You can version control your notebooks:"
+	@echo "[init]    cd $(DATA_DIR)/notebooks && git init"

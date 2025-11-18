@@ -38,14 +38,12 @@ services:
       - AWS_ENDPOINT_URL=${MINIO_SERVER_URL}
       - AWS_REGION=us-east-1
     volumes:
-      # Notebooks and work directory (persistent)
-      - flumen_jupyter_notebooks:/home/jovyan/work
+      # Notebooks and work directory (persistent - can be a git repo!)
+      - ${DATA_DIR}/notebooks:/home/jovyan/work
       # Spark configuration (runtime override)
       - ./config/jupyterlab/spark-defaults.conf:/usr/local/spark/conf/spark-defaults.conf:ro
-      # Sample notebooks
-      - ./templates/jupyterlab/notebooks/01_quickstart.ipynb:/home/jovyan/work/01_quickstart.ipynb:ro
-      # Shared data directory (optional)
-      - flumen_shared_data:/home/jovyan/shared:rw
+      # Sample notebooks (read-only reference)
+      - ./templates/jupyterlab/notebooks/01_quickstart.ipynb:/home/jovyan/work/_examples/01_quickstart.ipynb:ro
     depends_on:
       spark-master:
         condition: service_healthy
@@ -60,18 +58,9 @@ services:
     restart: unless-stopped
 
 # =============================================================================
-# Named Volumes
+# Named Volumes - Using bind mount for notebooks only
 # =============================================================================
-volumes:
-  # Tier 2 volumes
-  flumen_jupyter_notebooks:
-    name: flumen_jupyter_notebooks
-    driver: local
-
-  flumen_shared_data:
-    name: flumen_shared_data
-    driver: local
-
+# Notebooks: ${DATA_DIR}/notebooks (bind mount - version control this!)
 
 # =============================================================================
 # Networks

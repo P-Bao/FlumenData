@@ -34,7 +34,7 @@ help: ## Display this help message
 
 ##@ Initialization
 
-init: banner config up-tier0 init-tier0 up-tier1 init-tier1 up-tier2 init-tier2 up-tier3 init-tier3 health summary ## Complete environment initialization
+init: banner init-data-dirs config up-tier0 init-tier0 up-tier1 init-tier1 up-tier2 init-tier2 up-tier3 init-tier3 health summary ## Complete environment initialization
 	@echo "$(GREEN)✓ FlumenData initialized successfully!$(RESET)"
 
 banner:
@@ -210,10 +210,10 @@ logs-tier1: ## Show logs for Tier 1 services
 	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml logs -f hive-metastore spark-master spark-worker1 spark-worker2
 
 logs-tier2: ## Show logs for Tier 2 services
-	@$(DC) -f docker-compose.tier2.yml logs -f jupyterlab
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml -f docker-compose.tier2.yml logs -f jupyterlab
 
 logs-tier3: ## Show logs for Tier 3 services
-	@$(DC) -f docker-compose.tier3.yml logs -f trino superset
+	@$(DC) -f docker-compose.tier0.yml -f docker-compose.tier1.yml -f docker-compose.tier2.yml -f docker-compose.tier3.yml logs -f trino superset
 
 logs-postgres: ## Show PostgreSQL logs
 	@$(DC) -f docker-compose.tier0.yml logs -f postgres

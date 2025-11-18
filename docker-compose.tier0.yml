@@ -33,7 +33,7 @@ services:
       MINIO_SERVER_URL: ${MINIO_SERVER_URL}
       MINIO_BROWSER_REDIRECT_URL: ${MINIO_BROWSER_REDIRECT_URL}
     volumes:
-      - minio_data:/data
+      - ${DATA_DIR}/minio:/data
       - ./config/minio:/etc/minio:ro
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:9000/minio/health/live >/dev/null"]
@@ -43,6 +43,6 @@ services:
 
 volumes:
   postgres_data:
+    name: flumen_postgres_data
     driver: local
-  minio_data:
-    driver: local
+  # minio_data moved to bind mount: ${DATA_DIR}/minio
