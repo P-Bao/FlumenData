@@ -175,7 +175,7 @@ make config-spark
 make restart
 
 # Access Spark UI
-open http://localhost:${SPARK_MASTER_WEBUI_PORT}
+open http://localhost:8080
 ```
 
 ### Delta Lake
@@ -425,4 +425,3 @@ env | grep -E "POSTGRES|MINIO|SPARK|HIVE|DELTA"
 
 - [Make Commands Reference](commands.md) - All available commands
 - [Architecture](../getting-started/architecture.md) - Understand component relationships
-- [Contributing](../development/contributing.md) - Add new configuration options

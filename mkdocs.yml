@@ -1,10 +1,10 @@
 site_name: FlumenData
 site_description: Open Source Lakehouse Platform with Spark, Hive Metastore, and Delta Lake
-site_author: FlumenData Team
-site_url: https://flumendata.io
+site_author: Luciano Mauda Junior
+site_url: https://www.linkedin.com/in/lucianomaudajunior/?locale=en_US
 
-repo_name: flumendata/flumendata
-repo_url: https://github.com/flumendata/flumendata
+repo_name: lucianomauda/FlumenData
+repo_url: https://github.com/lucianomauda/FlumenData
 edit_uri: edit/main/docs/
 
 theme:
@@ -40,10 +40,10 @@ plugins:
   - i18n:
       default_language: en
       languages:
-        en:
+        - locale: en
           name: English
-          build: true
-        pt:
+          default: true
+        - locale: pt
           name: Português
           build: true
       nav_translations:
@@ -62,9 +62,14 @@ plugins:
           Superset: Superset
           Trino: Trino
           Getting Started: Começando
+          Installation: Instalação
+          Quick Start: Início Rápido
           Architecture: Arquitetura
           Configuration: Configuração
-          Commands: Comandos
+          Environment Variables: Variáveis de Ambiente
+          Make Commands: Comandos Make
+          Development: Desenvolvimento
+          Testing: Testes
 
 markdown_extensions:
   - admonition
@@ -81,9 +86,6 @@ markdown_extensions:
       smart_enable: all
   - pymdownx.caret
   - pymdownx.details
-  - pymdownx.emoji:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
@@ -104,9 +106,9 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/flumendata/flumendata
-    - icon: fontawesome/brands/docker
-      link: https://hub.docker.com/u/flumendata
+      link: https://github.com/lucianomauda
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/lucianomaudajunior/?locale=en_US
   version:
     provider: mike
 
@@ -132,5 +134,4 @@ nav:
       - Environment Variables: configuration/environment.md
       - Make Commands: configuration/commands.md
   - Development:
-      - Contributing: development/contributing.md
       - Testing: development/testing.md

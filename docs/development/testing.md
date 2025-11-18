@@ -483,6 +483,5 @@ docker exec -it flumen_spark_master /opt/spark/bin/spark-submit \
 
 ## Next Steps
 
-- [Contributing Guide](contributing.md) - Learn how to contribute
 - [Architecture](../getting-started/architecture.md) - Understand system design
 - [Commands Reference](../configuration/commands.md) - Available commands

@@ -5,7 +5,6 @@
 
 [This README is also available in English](./README.md)
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Docker](https://img.shields.io/badge/Docker-20.10%2B-blue.svg)](https://www.docker.com/)
 [![Spark](https://img.shields.io/badge/Spark-4.0.1-E25A1C.svg)](https://spark.apache.org/)
 [![Delta Lake](https://img.shields.io/badge/Delta%20Lake-4.0.0-00ADD8.svg)](https://delta.io/)
@@ -89,7 +88,7 @@ graph TB
 - Docker 20.10+
 - Docker Compose 2.0+
 - GNU Make
-- 8 GB RAM mínimo (16 GB recomendado)
+- 16 GB RAM mínimo (32 GB recomendado)
 - 20 GB de espaço livre em disco
 
 ### Instalação
@@ -164,7 +163,6 @@ Páginas principais de documentação:
 - [Apache Superset](docs/services/superset.md)
 - [Configuração](docs/configuration/environment.md)
 - [Referência de Comandos Make](docs/configuration/commands.md)
-- [Guia de Contribuição](docs/development/contributing.md)
 
 ## 🛠️ Comandos Comuns
 
@@ -259,10 +257,6 @@ FlumenData é perfeito para:
 - ✅ **Tier 2 – Analytics & Desenvolvimento**: JupyterLab
 - ✅ **Tier 3 – SQL & BI**: Trino, Superset
 
-## 🤝 Contribuindo
-
-Contribuições são bem-vindas! Por favor, veja nosso [Guia de Contribuição](docs/development/contributing.md) para detalhes.
-
 Diretrizes principais:
 - Todo código e comentários em inglês
 - Atualizar documentação EN e PT
@@ -312,10 +306,6 @@ make clean
 ```
 
 Para mais dicas de solução de problemas, veja a [documentação](docs/getting-started/installation.md#troubleshooting-installation).
-
-## 📄 Licença
-
-FlumenData está licenciado sob [Apache License 2.0](LICENSE).
 
 ## 🙏 Agradecimentos
 

@@ -5,9 +5,9 @@ O JupyterLab serve como ambiente de desenvolvimento interativo para o FlumenData
 ## Visão Geral
 
 **Imagem**: `flumendata/jupyterlab:spark-4.0.1` (construída customizada)
-**Base**: `jupyter/scipy-notebook:python-3.11`
+**Base**: `jupyter/scipy-notebook:python-3.10`
 **Porta**: 8888 (UI Web)
-**Python**: 3.11
+**Python**: 3.10
 **PySpark**: 4.0.1 (corresponde ao cluster)
 **Delta Lake**: 4.0.0 (corresponde ao cluster)
 

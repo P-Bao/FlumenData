@@ -231,10 +231,3 @@ After running `make init`, access these UIs:
 - ✅ **Tier 2 – Analytics & Development**: JupyterLab
 - ✅ **Tier 3 – SQL & BI**: Trino, Superset
 
-## Contributing
-
-See [Contributing Guide](development/contributing.md) for development guidelines.
-
-## License
-
-Apache License 2.0

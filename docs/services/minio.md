@@ -7,7 +7,7 @@
 
 ## Configuration
 - Environment from `.env`: `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`, `MINIO_SERVER_URL`, `MINIO_BROWSER_REDIRECT_URL`, `MINIO_PORT_API`, `MINIO_PORT_CONSOLE`.
-- Persistent volume: `minio_data` → `/data`.
+- Bind mount: `${DATA_DIR}/minio` → `/data` (contains the `lakehouse` and `storage` buckets).
 - Policy template: `/templates/minio/policy-readonly.json.tpl` → `/config/minio/policy-readonly.json`.
 - Healthcheck: `GET /minio/health/live` on container.
 - MinIO Client (mc) used inside the Compose network with a pinned image for tests/backups.

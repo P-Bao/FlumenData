@@ -2,6 +2,8 @@
 
 FlumenData uses **configurable bind mounts** for critical user data while keeping everything else in Docker volumes for simplicity.
 
+[Este guia também está disponível em Português](./DATA_STORAGE_PT.md)
+
 ## 📁 Data Directory Structure
 
 Only **2 directories** are exposed as bind mounts - the ones you actually need access to:

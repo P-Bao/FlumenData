@@ -13,7 +13,6 @@ graph TB
 
     subgraph "Tier 0 - Foundation"
         POSTGRES[PostgreSQL 17.6<br/>Metadata Store]
-        VALKEY[Valkey 9.0<br/>Cache Layer]
         MINIO[MinIO<br/>Object Storage]
     end
 
@@ -26,7 +25,6 @@ graph TB
     DELTA --> MINIO
     HIVE --> POSTGRES
     HIVE --> MINIO
-    SPARK --> VALKEY
     SPARK --> MINIO
 ```
 
@@ -59,15 +57,6 @@ graph TB
   - Partition information
   - Column statistics
   - Table locations (S3A paths)
-
-#### Valkey - Cache Layer
-- **Purpose**: In-memory caching for Spark
-- **Technology**: Valkey 9.0 (Redis-compatible)
-- **Port**: 6379
-- **Use Cases**:
-  - Query result caching
-  - Metadata caching
-  - Session state
 
 ### 2. Metadata Layer (Tier 1)
 
@@ -249,7 +238,6 @@ superset:      # BI dashboards
 ```mermaid
 graph TD
     T0[Tier 0 Services] --> POSTGRES[PostgreSQL]
-    T0 --> VALKEY[Valkey]
     T0 --> MINIO[MinIO]
 
     POSTGRES --> HIVE[Hive Metastore]
@@ -269,11 +257,10 @@ graph TD
 All services have health checks to ensure proper startup:
 
 1. **PostgreSQL**: `pg_isready` command
-2. **Valkey**: `redis-cli ping` command
-3. **MinIO**: HTTP GET on `/minio/health/live`
-4. **Hive Metastore**: Process check `pgrep -f HiveMetaStore`
-5. **Spark Master**: HTTP GET on port 8080
-6. **Spark Workers**: Check Master UI accessibility
+2. **MinIO**: HTTP GET on `/minio/health/live`
+3. **Hive Metastore**: Process check `pgrep -f HiveMetaStore`
+4. **Spark Master**: HTTP GET on port 8080
+5. **Spark Workers**: Check Master UI accessibility
 
 ## Network Architecture
 
@@ -301,12 +288,26 @@ All services run on the same Docker network (`tier0_network` and `tier1_network`
 
 ## Storage Architecture
 
-### Docker Volumes
+### Bind Mounts (User-Accessible Data)
+
+**Critical data directories mounted from `${DATA_DIR}`:**
+```
+${DATA_DIR}/minio/            # MinIO lakehouse storage (can grow to TBs)
+  ├── lakehouse/              # Delta Lake tables
+  └── storage/                # Staging bucket
+${DATA_DIR}/notebooks/        # JupyterLab notebooks (version control this!)
+```
+
+These directories are on your host filesystem and can be:
+- Backed up easily
+- Accessed from Windows Explorer (if using WSL)
+- Version controlled (especially notebooks/)
+
+### Docker Volumes (Internal Data)
 
 **Tier 0 Volumes:**
 ```
-postgres_data    # PostgreSQL database files
-minio_data       # MinIO object storage
+postgres_data    # PostgreSQL database files (Hive metadata)
 ```
 
 **Tier 1 Volumes:**
@@ -317,15 +318,9 @@ spark_work       # Spark work directory
 spark_logs       # Spark logs
 ```
 
-**Tier 2 Volumes:**
-```
-flumen_jupyter_notebooks   # Persistent notebooks
-flumen_shared_data         # Shared scratch space
-```
-
 **Tier 3 Volumes:**
 ```
-flumen_superset_home       # Dashboards, uploads, config
+flumen_superset_home       # Superset dashboards, uploads, config
 ```
 
 ### Data Retention
@@ -374,7 +369,6 @@ For production:
 - Hive Metastore: Multiple instances behind load balancer
 - MinIO: Distributed mode with erasure coding
 - Spark: Multiple masters in HA mode
-- Valkey: Sentinel or cluster mode
 
 ## Next Steps
 

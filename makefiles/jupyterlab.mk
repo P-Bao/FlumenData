@@ -5,7 +5,6 @@
 
 # Configuration files
 JUPYTERLAB_CONFIG_DIR := config/jupyterlab
-JUPYTERLAB_TEMPLATES := templates/jupyterlab/spark-defaults.conf.tpl
 
 # Docker image
 JUPYTERLAB_IMAGE := flumendata/jupyterlab:spark-4.0.1

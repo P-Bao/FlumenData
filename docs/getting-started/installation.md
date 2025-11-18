@@ -15,12 +15,12 @@ This guide will help you install and set up FlumenData on your system.
 
 **Minimum:**
 - 4 CPU cores
-- 8 GB RAM
+- 16 GB RAM
 - 20 GB free disk space
 
 **Recommended:**
 - 8+ CPU cores
-- 16 GB RAM
+- 32 GB RAM
 - 50 GB free disk space (for data storage)
 
 ### Operating System
@@ -101,7 +101,7 @@ make init
 This command will:
 1. Generate all configuration files
 2. Build custom Docker images (Hive, Spark)
-3. Start Tier 0 services (PostgreSQL, Valkey, MinIO)
+3. Start Tier 0 services (PostgreSQL, MinIO)
 4. Initialize MinIO buckets
 5. Start Tier 1 services (Hive Metastore, Spark cluster)
 6. Run health checks
@@ -153,7 +153,7 @@ Run integration tests to verify everything works:
 make test
 
 # Test specific tier
-make test-tier0    # PostgreSQL, Valkey, MinIO
+make test-tier0    # PostgreSQL, MinIO
 make test-tier1    # Hive Metastore, Spark
 ```
 
@@ -214,7 +214,7 @@ docker system info | grep -i "memory\|cpus"
 ```
 
 Increase Docker Desktop resources if needed:
-- Settings → Resources → Memory: 8 GB minimum
+- Settings → Resources → Memory: 16 GB minimum
 - Settings → Resources → CPUs: 4 cores minimum
 
 ### Slow initialization
