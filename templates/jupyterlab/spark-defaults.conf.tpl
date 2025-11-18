@@ -7,9 +7,9 @@ spark.submit.deployMode client
 
 # === Application Configuration ===
 spark.app.name JupyterLab-FlumenData
-spark.driver.memory 2g
-spark.executor.memory 2g
-spark.executor.cores 2
+spark.driver.memory ${SPARK_DRIVER_MEMORY}
+spark.executor.memory ${SPARK_EXECUTOR_MEMORY}
+spark.executor.cores ${SPARK_EXECUTOR_CORES}
 
 # Set Ivy cache and suppress warnings
 spark.jars.ivy /home/jovyan/.ivy2

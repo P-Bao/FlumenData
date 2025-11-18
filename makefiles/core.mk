@@ -3,6 +3,12 @@
 # Compose wrapper
 DC := docker compose
 
+# Platform detection
+UNAME_S := $(shell uname -s 2>/dev/null || echo unknown)
+
+# Resolve DATA_DIR to absolute path (handles relative paths like ../data-projects)
+DATA_DIR_ABS := $(shell cd $(CURDIR) && realpath -m $(DATA_DIR) 2>/dev/null || echo $(DATA_DIR))
+
 # Detect local envsubst
 HAS_ENVSUBST := $(shell command -v envsubst >/dev/null 2>&1 && echo yes || echo no)
 
@@ -37,19 +43,45 @@ define wait_for_healthy
 	done
 endef
 
+# Directory creation helper
+define create_data_dir
+	@echo "[init] Platform: $(UNAME_S)"
+	@echo "[init] Data directory: $(DATA_DIR) -> $(DATA_DIR_ABS)"
+	@if [ ! -d "$(DATA_DIR_ABS)" ]; then \
+		echo "[init] Creating base directory: $(DATA_DIR_ABS)"; \
+		mkdir -p "$(DATA_DIR_ABS)" 2>&1 || { \
+			echo "[init] "; \
+			echo "[init] ✗ Cannot create directory. Please run:"; \
+			echo "[init]   mkdir -p $(DATA_DIR_ABS)"; \
+			exit 1; \
+		}; \
+	fi
+endef
+
 # Initialize data directories for bind mounts
-# Usage: make init-data-dirs
+# Works on Linux, macOS, and WSL
 .PHONY: init-data-dirs
 init-data-dirs:
-	@echo "[init] Creating data directories at $(DATA_DIR)..."
-	@mkdir -p "$(DATA_DIR)/minio/lakehouse"
-	@mkdir -p "$(DATA_DIR)/minio/storage"
-	@mkdir -p "$(DATA_DIR)/notebooks/_examples"
-	@echo "[init] ✓ Data directories created"
+	@echo "[init] Initializing data directories"
+	@if [ -f "$(DATA_DIR)" ]; then \
+		echo "[init] ✗ ERROR: $(DATA_DIR) exists as a file, not a directory!"; \
+		exit 1; \
+	fi
+	$(call create_data_dir)
+	@echo "[init] ✓ Base directory ready: $(DATA_DIR)"
+	@echo "[init] Creating subdirectories..."
+	@mkdir -p "$(DATA_DIR)/minio/lakehouse" || { echo "[init] ✗ Failed to create minio/lakehouse"; exit 1; }
+	@mkdir -p "$(DATA_DIR)/minio/storage" || { echo "[init] ✗ Failed to create minio/storage"; exit 1; }
+	@mkdir -p "$(DATA_DIR)/notebooks/_examples" || { echo "[init] ✗ Failed to create notebooks"; exit 1; }
+	@echo "[init] ✓ Data directories created successfully"
 	@echo "[init] "
-	@echo "[init] Data location: $(DATA_DIR)"
-	@echo "[init] - MinIO (lakehouse data): $(DATA_DIR)/minio/"
-	@echo "[init] - Notebooks (your work):  $(DATA_DIR)/notebooks/"
+	@echo "[init] Data location:"
+	@echo "[init]   Configured: $(DATA_DIR)"
+	@echo "[init]   Resolved:   $(DATA_DIR_ABS)"
 	@echo "[init] "
-	@echo "[init] 💡 Tip: You can version control your notebooks:"
-	@echo "[init]    cd $(DATA_DIR)/notebooks && git init"
+	@echo "[init] Structure:"
+	@echo "[init]   ├── minio/lakehouse     (Delta Lake tables)"
+	@echo "[init]   ├── minio/storage       (staging files)"
+	@echo "[init]   └── notebooks/          (your work - can git init here!)"
+	@echo "[init] "
+	@echo "[init] 💡 Version control notebooks: cd $(DATA_DIR)/notebooks && git init"

@@ -7,7 +7,7 @@ FlumenData uses **configurable bind mounts** for critical user data while keepin
 Only **2 directories** are exposed as bind mounts - the ones you actually need access to:
 
 ```
-${DATA_DIR}/                  # Default: ../data-projects/flumendata
+${DATA_DIR}/                  # Default: ../flumendata-data (sibling to FlumenData repo)
 ├── minio/                    # MinIO lakehouse storage (can grow to TBs)
 │   ├── lakehouse/           # Delta Lake tables
 │   └── storage/             # Staging bucket for raw files
@@ -19,45 +19,114 @@ ${DATA_DIR}/                  # Default: ../data-projects/flumendata
 
 Everything else (PostgreSQL metadata, Spark logs, caches) stays in **Docker volumes** - you don't need direct access to them.
 
-## ⚙️ Configuration
+## 🪟 Initial Setup (WSL + Windows)
 
-### Change Data Location
+### Step 1: Create Base Directory on Windows
 
-Edit `.env` and set `DATA_DIR` to your preferred location:
+**IMPORTANT:** When using WSL with Windows drives, create the base directory from Windows first.
 
-```bash
-# Relative path (default)
-DATA_DIR=../data-projects/flumendata
+**Method 1 - File Explorer (Recommended):**
+1. Press `Win + E` to open File Explorer
+2. Navigate to `This PC` → `D:` drive
+3. Right-click in empty space → `New` → `Folder`
+4. Name it: `data-projects`
 
-# Absolute path
-DATA_DIR=/mnt/nas/flumendata
-
-# Home directory
-DATA_DIR=~/flumendata-data
-
-# External drive (for TB of lakehouse data)
-DATA_DIR=/mnt/external/flumendata
+**Method 2 - PowerShell:**
+```powershell
+New-Item -ItemType Directory -Path "D:\data-projects" -Force
 ```
 
-### Initialization
+**Method 3 - Command Prompt:**
+```cmd
+mkdir D:\data-projects
+```
 
-Run `make init` to create the directory structure:
+### Step 2: Initialize Data Directories
+
+From WSL, run:
+```bash
+make init-data-dirs
+```
+
+This will create the subdirectories:
+- `minio/lakehouse`
+- `minio/storage`
+- `notebooks/_examples`
+
+### Step 3: Complete Initialization
 
 ```bash
 make init
 ```
 
 This will:
-1. Create `minio/` and `notebooks/` directories
-2. Set up proper structure
-3. Initialize all services
+1. ✓ Verify data directories exist
+2. ✓ Generate all configuration files
+3. ✓ Start all services
+4. ✓ Initialize databases and buckets
+
+## ⚙️ Configuration
+
+### Data Location
+
+**Default:** `DATA_DIR=../flumendata-data` (relative path - sibling directory to FlumenData)
+
+This creates the structure:
+```
+your-workspace/
+├── FlumenData/          # This repository (git clone)
+└── flumendata-data/     # Your data (can be separate git repo)
+    ├── minio/
+    └── notebooks/
+```
+
+### Change Data Location
+
+Edit `.env` and set `DATA_DIR` to your preferred location:
+
+**Option 1: Relative paths (RECOMMENDED - portable across machines)**
+```bash
+# Sibling directory (default)
+DATA_DIR=../flumendata-data
+
+# Inside project (simple but mixes code and data)
+DATA_DIR=./data
+
+# Parent directory with custom name
+DATA_DIR=../../my-lakehouse-data
+```
+
+**Option 2: Absolute paths (machine-specific)**
+```bash
+# Windows D: drive (WSL path - accessible from Windows Explorer)
+DATA_DIR=/mnt/d/data-projects
+
+# Windows E: drive
+DATA_DIR=/mnt/e/flumendata
+
+# Windows C: drive (Users folder)
+DATA_DIR=/mnt/c/Users/YourName/flumendata
+
+# Linux home directory
+DATA_DIR=~/flumendata-data
+
+# Linux absolute path
+DATA_DIR=/home/user/flumendata
+
+# Network storage
+DATA_DIR=/mnt/nas/flumendata
+```
+
+**Trade-offs:**
+- **Relative paths:** Portable, work anywhere you clone FlumenData, easier for teams
+- **Absolute paths:** Always work regardless of current directory, explicit location
 
 ## 📓 Version Control Your Notebooks
 
 The **notebooks/** directory is perfect for version control!
 
 ```bash
-cd ${DATA_DIR}/notebooks
+cd /mnt/d/data-projects/notebooks
 
 # Initialize git
 git init
@@ -71,7 +140,7 @@ git push -u origin main
 
 ### Recommended .gitignore
 
-Create `${DATA_DIR}/notebooks/.gitignore`:
+Create `/mnt/d/data-projects/notebooks/.gitignore`:
 
 ```gitignore
 # Jupyter checkpoints
@@ -114,13 +183,16 @@ These are in Docker volumes - backup if you want, but less critical:
 
 ```bash
 # Backup MinIO + Notebooks (the important stuff)
-tar -czf flumendata-backup-$(date +%Y%m%d).tar.gz ${DATA_DIR}
+# From Windows: Just copy D:\data-projects folder
+
+# From WSL:
+tar -czf flumendata-backup-$(date +%Y%m%d).tar.gz /mnt/d/data-projects
 
 # Rsync to NAS
-rsync -av --progress ${DATA_DIR}/ /mnt/nas/backups/flumendata/
+rsync -av --progress /mnt/d/data-projects/ /mnt/nas/backups/flumendata/
 
 # Or just use git for notebooks
-cd ${DATA_DIR}/notebooks
+cd /mnt/d/data-projects/notebooks
 git add .
 git commit -m "Latest analysis"
 git push
@@ -130,10 +202,35 @@ git push
 
 ### Moving to Different Machine
 
+#### Option 1: Windows to Windows (Copy via Windows)
+
+1. **Copy folder in Windows:**
+   - Copy `D:\data-projects` to USB drive or network
+   - On new machine, paste to `D:\data-projects`
+
+2. **Clone FlumenData repo on new machine:**
+```bash
+git clone https://github.com/flumendata/flumendata.git
+cd flumendata
+```
+
+3. **Copy `.env` or set DATA_DIR:**
+```bash
+# In .env
+DATA_DIR=/mnt/d/data-projects
+```
+
+4. **Start services:**
+```bash
+make init
+```
+
+#### Option 2: Linux to Linux (Tar backup)
+
 1. **Export data:**
 ```bash
 cd $(dirname ${DATA_DIR})
-tar -czf flumendata-data.tar.gz flumendata/
+tar -czf flumendata-data.tar.gz data-projects/
 ```
 
 2. **On new machine:**
@@ -144,14 +241,12 @@ tar -xzf flumendata-data.tar.gz
 
 3. **Update `.env`:**
 ```bash
-DATA_DIR=/new/location/flumendata
+DATA_DIR=/new/location/data-projects
 ```
 
 4. **Restart:**
 ```bash
-make down
-make up
-make health
+make init
 ```
 
 ### Moving MinIO to Larger Disk
@@ -162,11 +257,13 @@ If your lakehouse grows too large:
 # Stop services
 make down
 
-# Move MinIO data
-rsync -av --progress ${DATA_DIR}/minio/ /mnt/larger-disk/minio/
+# Copy data to new location (from Windows Explorer or WSL)
+# Windows: Copy D:\data-projects\minio to E:\data-projects\minio
+# Or from WSL:
+rsync -av --progress /mnt/d/data-projects/minio/ /mnt/e/data-projects/minio/
 
 # Update .env
-DATA_DIR=/mnt/larger-disk
+DATA_DIR=/mnt/e/data-projects
 
 # Restart
 make up
@@ -186,7 +283,7 @@ make up
 
 ```bash
 # Good workflow
-cd ${DATA_DIR}/notebooks
+cd /mnt/d/data-projects/notebooks
 git init
 git remote add origin git@github.com:you/your-analysis.git
 
@@ -199,10 +296,10 @@ git push
 
 ### Storage Tips
 
-- **SSD** for `${DATA_DIR}` if possible (better performance)
-- **HDD** is OK for MinIO if budget-constrained (works fine, just slower)
-- **Monitor disk usage**: `du -sh ${DATA_DIR}/*`
-- **Clean old Spark logs** in Docker volumes: `docker volume rm flumen_spark_logs`
+- **Keep on Windows drive** for easy access and backup
+- **Monitor disk usage**: Right-click D:\data-projects → Properties
+- **Use Windows tools** for backup (OneDrive, Dropbox, etc.)
+- **SSD preferred** for better performance (but HDD works fine)
 
 ## 📊 Docker Volumes (No Direct Access Needed)
 
@@ -225,38 +322,57 @@ docker volume prune  # Remove unused volumes
 
 ## 🆘 Troubleshooting
 
+### "Directory does not exist" Error
+
+If you get an error when running `make init-data-dirs`:
+
+```
+[init] ✗ Directory /mnt/d/data-projects does not exist
+```
+
+**Solution:** Create the base directory from Windows first (see "Initial Setup" above).
+
+**Why?** WSL cannot create directories at the Windows drive root level. You must create `D:\data-projects` from Windows, then FlumenData can create subdirectories inside it.
+
 ### Permission Issues
 
 If JupyterLab can't write to notebooks:
 
 ```bash
 # Fix permissions (JupyterLab runs as UID 1000)
-sudo chown -R 1000:1000 ${DATA_DIR}/notebooks
+sudo chown -R 1000:1000 /mnt/d/data-projects/notebooks
 ```
 
 For MinIO:
 ```bash
 # MinIO needs write access
-sudo chown -R $USER:$USER ${DATA_DIR}/minio
+sudo chown -R $USER:$USER /mnt/d/data-projects/minio
 ```
 
-### Directory Not Found
+### Cannot Access from Windows
+
+If you can't see the data from Windows Explorer:
 
 ```bash
-# Manually create if needed
-make init-data-dirs
+# Verify the path from WSL
+ls -la /mnt/d/data-projects
+
+# Open in Windows Explorer from WSL
+explorer.exe /mnt/d/data-projects
 ```
 
-Or:
-```bash
-mkdir -p ${DATA_DIR}/{minio/{lakehouse,storage},notebooks/_examples}
-```
+Or directly open: `D:\data-projects` in File Explorer
 
 ### Disk Full
 
 Check what's using space:
+
+**From Windows:**
+- Right-click `D:\data-projects` → Properties
+
+**From WSL:**
 ```bash
-du -sh ${DATA_DIR}/*
+du -sh /mnt/d/data-projects/*
 ```
 
 Clean up MinIO staging:
