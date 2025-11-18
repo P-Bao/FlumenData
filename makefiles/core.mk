@@ -49,13 +49,22 @@ define create_data_dir
 	@echo "[init] Data directory: $(DATA_DIR) -> $(DATA_DIR_ABS)"
 	@if [ ! -d "$(DATA_DIR_ABS)" ]; then \
 		echo "[init] Creating base directory: $(DATA_DIR_ABS)"; \
-		mkdir -p "$(DATA_DIR_ABS)" 2>&1 || { \
-			echo "[init] "; \
-			echo "[init] ✗ Cannot create directory. Please run:"; \
-			echo "[init]   mkdir -p $(DATA_DIR_ABS)"; \
+		TMP_FILE="$$(mktemp)"; \
+		if ! mkdir -p "$(DATA_DIR_ABS)" 2> "$$TMP_FILE"; then \
+			ERR_MSG="$$(cat "$$TMP_FILE")"; \
+			rm -f "$$TMP_FILE"; \
+			if [ -f "$(DATA_DIR_ABS)" ]; then \
+				echo "[init] ✗ ERROR: Path exists but is a file: $(DATA_DIR_ABS)"; \
+			else \
+				echo "[init] ✗ Cannot create directory (permissions?): $(DATA_DIR_ABS)"; \
+			fi; \
+			echo "[init]   Details: $$ERR_MSG"; \
+			echo "[init]   Please create it manually (e.g. mkdir -p $(DATA_DIR_ABS)) or update DATA_DIR in .env"; \
 			exit 1; \
-		}; \
+		fi; \
+		rm -f "$$TMP_FILE"; \
 	fi
+	@echo "[init] ✓ Base directory ready: $(DATA_DIR)"
 endef
 
 # Initialize data directories for bind mounts
@@ -68,7 +77,6 @@ init-data-dirs:
 		exit 1; \
 	fi
 	$(call create_data_dir)
-	@echo "[init] ✓ Base directory ready: $(DATA_DIR)"
 	@echo "[init] Creating subdirectories..."
 	@mkdir -p "$(DATA_DIR)/minio/lakehouse" || { echo "[init] ✗ Failed to create minio/lakehouse"; exit 1; }
 	@mkdir -p "$(DATA_DIR)/minio/storage" || { echo "[init] ✗ Failed to create minio/storage"; exit 1; }

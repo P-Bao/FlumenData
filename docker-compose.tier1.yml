@@ -4,6 +4,10 @@ services:
     build:
       context: .
       dockerfile: docker/hive.Dockerfile
+      args:
+        POSTGRESQL_JDBC_VERSION: ${POSTGRESQL_JDBC_VERSION}
+        HADOOP_AWS_VERSION: ${HADOOP_AWS_VERSION}
+        AWS_SDK_BUNDLE_VERSION: ${AWS_SDK_BUNDLE_VERSION}
     image: flumendata/hive:standalone-metastore-4.1.0
     container_name: flumen_hive_metastore
     restart: unless-stopped
