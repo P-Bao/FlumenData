@@ -222,7 +222,6 @@ sequenceDiagram
 **Tier 0 (Foundation):**
 ```yaml
 postgres:      # Metadata backend
-valkey:        # Cache layer
 minio:         # Object storage
 ```
 
@@ -232,6 +231,17 @@ hive-metastore:   # Catalog service
 spark-master:     # Spark coordinator
 spark-worker1:    # Spark executor
 spark-worker2:    # Spark executor
+```
+
+**Tier 2 (Analytics & Development):**
+```yaml
+jupyterlab:    # PySpark workspace
+```
+
+**Tier 3 (SQL & BI):**
+```yaml
+trino:         # Distributed SQL engine
+superset:      # BI dashboards
 ```
 
 ### Startup Dependencies
@@ -277,14 +287,17 @@ All services run on the same Docker network (`tier0_network` and `tier1_network`
 ### Port Mapping
 
 | Service | Internal Port | External Port | Protocol |
-|---------|---------------|---------------|----------|
+| Service | Host Port | Container Port | Protocol |
+|---------|-----------|----------------|----------|
 | PostgreSQL | 5432 | 5432 | TCP |
-| Valkey | 6379 | 6379 | TCP |
 | MinIO API | 9000 | 9000 | HTTP |
 | MinIO Console | 9001 | 9001 | HTTP |
 | Hive Metastore | 9083 | 9083 | Thrift |
-| Spark Master | 7077 | 7077 | Spark |
+| Spark Master | 7077 | 7077 | RPC |
 | Spark Master UI | 8080 | 8080 | HTTP |
+| JupyterLab | 8888 | 8888 | HTTP |
+| Trino | ${TRINO_PORT:-8082} | 8080 | HTTP |
+| Superset | ${SUPERSET_PORT:-8088} | 8088 | HTTP |
 
 ## Storage Architecture
 
@@ -293,7 +306,6 @@ All services run on the same Docker network (`tier0_network` and `tier1_network`
 **Tier 0 Volumes:**
 ```
 postgres_data    # PostgreSQL database files
-valkey_data      # Valkey RDB snapshots
 minio_data       # MinIO object storage
 ```
 
@@ -303,6 +315,17 @@ spark_conf       # Spark configuration
 spark_ivy        # JAR dependency cache
 spark_work       # Spark work directory
 spark_logs       # Spark logs
+```
+
+**Tier 2 Volumes:**
+```
+flumen_jupyter_notebooks   # Persistent notebooks
+flumen_shared_data         # Shared scratch space
+```
+
+**Tier 3 Volumes:**
+```
+flumen_superset_home       # Dashboards, uploads, config
 ```
 
 ### Data Retention

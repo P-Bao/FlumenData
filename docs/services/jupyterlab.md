@@ -471,6 +471,6 @@ spark.stop()
 
 ## Next Steps
 
-- Explore [dbt integration](dbt.md) for data transformations
-- Set up [MLflow](mlflow.md) for experiment tracking
+- Build dashboards using [Superset](superset.md)
+- Query curated tables via [Trino](trino.md)
 - Learn about [Delta Lake optimization](spark.md#performance-tips)

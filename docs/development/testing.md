@@ -18,11 +18,14 @@ Testing Hierarchy:
 ├── make test                  # All tests
 │   ├── make test-tier0       # Foundation tests
 │   │   ├── make test-postgres
-│   │   ├── make test-valkey
 │   │   └── make test-minio
 │   └── make test-tier1       # Data platform tests
 │       ├── make test-hive
 │       └── make test-spark
+│   └── make test-tier2       # Analytics & development tests
+│       └── make test-jupyterlab
+│   └── make test-tier3       # SQL & BI tests
+│       └── make test-trino
 ```
 
 ## Running Tests
@@ -40,13 +43,12 @@ make test
 [postgres:test] ✓ Connection successful
 [postgres:test] ✓ Table creation successful
 [postgres:test] ✓ Data insertion successful
-[valkey:test] ✓ Connection successful
-[valkey:test] ✓ SET/GET operations successful
 [minio:test] ✓ Bucket creation successful
 [minio:test] ✓ Object upload successful
 [hive:test] ✓ Metastore connection successful
 [hive:test] ✓ Database creation successful
 [spark:test] ✓ SparkPi job completed successfully
+[trino:test] ✓ CLI query succeeded
 [test] All tests passed!
 ```
 
@@ -64,10 +66,11 @@ make test-tier1
 
 ```bash
 make test-postgres
-make test-valkey
 make test-minio
 make test-hive
 make test-spark
+make test-jupyterlab
+make test-trino
 ```
 
 ## Test Details
@@ -109,39 +112,6 @@ test-postgres:
 	@echo "[postgres:test] ✓ All tests passed"
 ```
 
-### Valkey Tests
-
-**Location:** `makefiles/valkey.mk`
-
-**What it tests:**
-```bash
-make test-valkey
-```
-
-1. **Connection test**: Verify Valkey accepts connections
-2. **SET operation**: Write key-value pair
-3. **GET operation**: Retrieve value
-4. **Key deletion**: Clean up test data
-
-**Implementation:**
-```makefile
-test-valkey:
-	@echo "[valkey:test] Testing connection..."
-	@docker exec flumen_valkey redis-cli PING > /dev/null
-	@echo "[valkey:test] ✓ Connection successful"
-
-	@echo "[valkey:test] Testing SET operation..."
-	@docker exec flumen_valkey redis-cli SET test_key "test_value"
-	@echo "[valkey:test] ✓ SET successful"
-
-	@echo "[valkey:test] Testing GET operation..."
-	@docker exec flumen_valkey redis-cli GET test_key | grep "test_value"
-	@echo "[valkey:test] ✓ GET successful"
-
-	@echo "[valkey:test] Cleaning up..."
-	@docker exec flumen_valkey redis-cli DEL test_key
-	@echo "[valkey:test] ✓ All tests passed"
-```
 
 ### MinIO Tests
 

@@ -15,8 +15,10 @@
 FlumenData é uma **plataforma lakehouse open-source** que combina o melhor de data lakes e data warehouses. Construída com Docker Compose, fornece um ambiente completo e reproduzível para engenharia de dados e análises modernas.
 
 **Status Atual:**
-- ✅ **Tier 0 (Fundação)**: PostgreSQL, Valkey, MinIO - validado e estável
+- ✅ **Tier 0 (Fundação)**: PostgreSQL, MinIO - validado e estável
 - ✅ **Tier 1 (Plataforma de Dados)**: Apache Spark 4.0.1, Hive Metastore 4.1.0, Delta Lake 4.0 - operacional
+- ✅ **Tier 2 (Analytics & Desenvolvimento)**: JupyterLab - pronto para uso diário
+- ✅ **Tier 3 (SQL & BI)**: Trino, Superset - otimizados para portfólio
 
 ## ✨ Recursos Principais
 
@@ -38,13 +40,21 @@ graph TB
     end
 
     subgraph "Tier 0 - Fundação"
-        POSTGRES[PostgreSQL 17.6<br/>Armazenamento de Metadados]
-        VALKEY[Valkey 9.0<br/>Camada de Cache]
-        MINIO[MinIO<br/>Armazenamento de Objetos]
+        POSTGRES[PostgreSQL 17.6<br/>Metadados]
+        MINIO[MinIO<br/>Objetos S3]
     end
 
     subgraph "Camada de Dados"
         DELTA[Delta Lake 4.0<br/>Tabelas ACID]
+    end
+
+    subgraph "Tier 2 - Analytics & Desenvolvimento"
+        JUPYTER[JupyterLab<br/>Workspace PySpark]
+    end
+
+    subgraph "Tier 3 - SQL & BI"
+        TRINO[Trino<br/>SQL Distribuído]
+        SUPERSET[Superset<br/>Dashboards]
     end
 
     SPARK --> HIVE
@@ -52,20 +62,25 @@ graph TB
     DELTA --> MINIO
     HIVE --> POSTGRES
     HIVE --> MINIO
-    SPARK --> VALKEY
     SPARK --> MINIO
+    JUPYTER --> SPARK
+    TRINO --> HIVE
+    TRINO --> MINIO
+    SUPERSET --> TRINO
 ```
 
 ### Stack Tecnológico
 
 | Camada | Tecnologia | Versão | Propósito |
 |--------|-----------|--------|-----------|
-| **Armazenamento** | MinIO | 2025-09-07 | Armazenamento de objetos compatível com S3 |
+| **Armazenamento** | MinIO | RELEASE.2025-09-07 | Armazenamento de objetos compatível com S3 |
 | **Armazenamento** | Delta Lake | 4.0.0 | Formato de tabela ACID com viagem no tempo |
 | **Metadados** | Hive Metastore | 4.1.0 | Catálogo centralizado |
 | **Metadados** | PostgreSQL | 17.6 | Backend de metadados |
 | **Computação** | Apache Spark | 4.0.1 | Motor de consultas distribuído |
-| **Cache** | Valkey | 9.0.0 | Cache em memória |
+| **Analytics** | JupyterLab | spark-4.0.1 | Notebooks PySpark |
+| **SQL** | Trino | 450 | Motor SQL distribuído |
+| **BI** | Superset | 5.0.0 | Dashboards e exploração de dados |
 
 ## 🚀 Início Rápido
 
@@ -129,28 +144,26 @@ Após executar `make init`, acesse:
   - Usuário: `minioadmin`
   - Senha: `minioadmin123`
 - **JupyterLab**: http://localhost:8888 - Notebooks para exploração de dados (`make token-jupyterlab` para obter o token)
-- **MLflow Tracking UI**: http://localhost:${MLFLOW_PORT} - Painel de rastreamento de experimentos
+- **Console Trino**: http://localhost:${TRINO_PORT} - Histórico e status de consultas
 - **Superset**: http://localhost:${SUPERSET_PORT} - Dashboards de BI (login: `admin` / `admin123`)
-- **Airflow**: http://localhost:${AIRFLOW_PORT} - UI de orquestração (login: `admin` / `admin123`)
 
 ## 📖 Documentação
 
 Documentação abrangente está disponível em Inglês e Português:
 
-- **English**: [docs/en/](docs/en/index.md)
-- **Português**: [docs/pt/](docs/pt/index.md)
+- **English**: [docs/index.md](docs/index.md)
+- **Português**: [docs/index.pt.md](docs/index.pt.md)
 
 Páginas principais de documentação:
-- [Guia de Instalação](docs/en/getting-started/installation.md)
-- [Tutorial Início Rápido](docs/en/getting-started/quickstart.md)
-- [Arquitetura Detalhada](docs/en/getting-started/architecture.md)
-- [Hive Metastore](docs/pt/services/hive.md)
-- [Apache Spark](docs/pt/services/spark.md)
-- [Apache Superset](docs/pt/services/superset.md)
-- [Apache Airflow](docs/pt/services/airflow.md)
-- [Configuração](docs/en/configuration/environment.md)
-- [Referência de Comandos Make](docs/en/configuration/commands.md)
-- [Guia de Contribuição](docs/en/development/contributing.md)
+- [Guia de Instalação](docs/getting-started/installation.md)
+- [Tutorial Início Rápido](docs/getting-started/quickstart.md)
+- [Arquitetura Detalhada](docs/getting-started/architecture.md)
+- [Hive Metastore](docs/services/hive.md)
+- [Apache Spark](docs/services/spark.md)
+- [Apache Superset](docs/services/superset.md)
+- [Configuração](docs/configuration/environment.md)
+- [Referência de Comandos Make](docs/configuration/commands.md)
+- [Guia de Contribuição](docs/development/contributing.md)
 
 ## 🛠️ Comandos Comuns
 
@@ -158,8 +171,8 @@ Páginas principais de documentação:
 # Gerenciamento de Serviços
 make init              # Inicialização completa
 make up                # Iniciar todos os serviços
-make up-tier2          # Iniciar serviços de analytics & ML
-make up-tier3          # Iniciar serviços de orquestração & BI
+make up-tier2          # Iniciar serviços de analytics & automação
+make up-tier3          # Iniciar serviços de SQL & BI
 make build-superset    # Construir imagem do Superset com dependências
 make down              # Parar todos os serviços
 make restart           # Reiniciar todos os serviços
@@ -168,8 +181,8 @@ make restart           # Reiniciar todos os serviços
 make health            # Verificar todos os serviços
 make health-tier0      # Verificar serviços de fundação
 make health-tier1      # Verificar serviços de plataforma de dados
-make health-tier2      # Verificar serviços de analytics & ML
-make health-tier3      # Verificar serviços de orquestração & BI
+make health-tier2      # Verificar serviços de analytics & automação
+make health-tier3      # Verificar serviços de SQL & BI
 
 # Testes
 make test              # Executar todos os testes
@@ -202,32 +215,22 @@ FlumenData/
 │   ├── hive.Dockerfile        # Hive Metastore + PostgreSQL JDBC
 │   ├── spark.Dockerfile       # Spark com verificações de saúde
 │   └── superset.Dockerfile    # Superset com psycopg2 + sqlalchemy-trino
-├── docs/                       # Documentação MkDocs Material
-│   ├── en/                    # Documentação em inglês
-│   └── pt/                    # Documentação em português
+├── docs/                       # Documentação MkDocs Material (EN + PT)
 ├── makefiles/                  # Makefiles específicos de serviços
 │   ├── postgres.mk
-│   ├── valkey.mk
 │   ├── minio.mk
 │   ├── hive.mk
 │   ├── spark.mk
 │   ├── jupyterlab.mk
-│   ├── dbt.mk
-│   ├── mlflow.mk
 │   ├── trino.mk
-│   ├── superset.mk
-│   └── airflow.mk
+│   └── superset.mk
 ├── templates/                  # Templates de configuração
 │   ├── hive/
 │   ├── spark/
 │   ├── minio/
-│   ├── valkey/
 │   ├── jupyterlab/
-│   ├── dbt/
-│   ├── mlflow/
 │   ├── trino/
-│   ├── superset/
-│   └── airflow/
+│   └── superset/
 ├── .env                        # Variáveis de ambiente (não no git)
 ├── docker-compose.tier0.yml    # Serviços de fundação
 ├── docker-compose.tier1.yml    # Serviços de plataforma de dados
@@ -250,15 +253,15 @@ FlumenData é perfeito para:
 
 ## 🔄 Roteiro
 
-- ✅ **Tier 0 – Fundação**: PostgreSQL, Valkey, MinIO
+- ✅ **Tier 0 – Fundação**: PostgreSQL, MinIO
 - ✅ **Tier 1 – Plataforma de Dados**: Spark, Hive Metastore, Delta Lake
-- ✅ **Tier 2 – Desenvolvimento & ML**: JupyterLab, dbt, MLflow
-- 🔄 **Tier 3 – Orquestração & BI**: Trino, Superset, Airflow
-- 📋 **Tier 4 – Observabilidade**: Prometheus, Grafana
+- ✅ **Tier 2 – Analytics & Desenvolvimento**: JupyterLab
+- ✅ **Tier 3 – SQL & BI**: Trino, Superset
+- 📋 **Tier 4 – Observabilidade**: Prometheus, Grafana (planejado)
 
 ## 🤝 Contribuindo
 
-Contribuições são bem-vindas! Por favor, veja nosso [Guia de Contribuição](docs/en/development/contributing.md) para detalhes.
+Contribuições são bem-vindas! Por favor, veja nosso [Guia de Contribuição](docs/development/contributing.md) para detalhes.
 
 Diretrizes principais:
 - Todo código e comentários em inglês
@@ -308,7 +311,7 @@ make reset
 make clean
 ```
 
-Para mais dicas de solução de problemas, veja a [documentação](docs/en/getting-started/installation.md#troubleshooting-installation).
+Para mais dicas de solução de problemas, veja a [documentação](docs/getting-started/installation.md#troubleshooting-installation).
 
 ## 📄 Licença
 
@@ -322,7 +325,9 @@ FlumenData é construído sobre incríveis projetos open-source:
 - [Apache Hive](https://hive.apache.org/)
 - [MinIO](https://min.io/)
 - [PostgreSQL](https://www.postgresql.org/)
-- [Valkey](https://valkey.io/)
+- [Trino](https://trino.io/)
+- [Apache Superset](https://superset.apache.org/)
+- [Project Jupyter](https://jupyter.org/)
 
 ## 📧 Contato
 

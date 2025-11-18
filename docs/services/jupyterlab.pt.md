@@ -278,6 +278,6 @@ docker exec flumen_jupyterlab jupyter server list
 
 ## Próximos Passos
 
-- Explorar [integração dbt](dbt.md) para transformações de dados
-- Configurar [MLflow](mlflow.md) para rastreamento de experimentos
+- Criar dashboards no [Superset](superset.md)
+- Consultar tabelas refinadas via [Trino](trino.md)
 - Aprender sobre [otimização Delta Lake](spark.md#performance-tips)

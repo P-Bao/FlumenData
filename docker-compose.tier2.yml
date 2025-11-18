@@ -1,6 +1,6 @@
 # FlumenData Tier 2: Analytics & Development Platform
-# Services: JupyterLab, dbt, MLflow
-# Dependencies: Tier 0 (PostgreSQL, Valkey, MinIO) + Tier 1 (Hive, Spark)
+# Services: JupyterLab
+# Dependencies: Tier 0 (PostgreSQL, MinIO) + Tier 1 (Hive, Spark)
 
 services:
   # =============================================================================
@@ -59,80 +59,6 @@ services:
       start_period: 30s
     restart: unless-stopped
 
-  # =============================================================================
-  # dbt - Analytics Engineering CLI
-  # =============================================================================
-  dbt:
-    container_name: flumen_dbt
-    build:
-      context: .
-      dockerfile: docker/dbt.Dockerfile
-      args:
-        - DBT_CORE_VERSION=${DBT_CORE_VERSION:-1.7.14}
-        - DBT_ADAPTERS=${DBT_ADAPTERS:-dbt-postgres==1.7.14}
-    image: flumendata/dbt:${DBT_CORE_VERSION:-1.7.14}
-    hostname: dbt
-    working_dir: /usr/app
-    command: ["tail", "-f", "/dev/null"]
-    environment:
-      - DBT_PROFILES_DIR=/root/.dbt
-    volumes:
-      - ./config/dbt/profiles.yml:/root/.dbt/profiles.yml:ro
-      - ./config/dbt/project:/usr/app:rw
-      - flumen_shared_data:/data:rw
-    depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "dbt", "--version"]
-      interval: 60s
-      timeout: 20s
-      retries: 3
-      start_period: 30s
-    restart: unless-stopped
-
-  # =============================================================================
-  # MLflow - Experiment Tracking Server
-  # =============================================================================
-  mlflow:
-    container_name: flumen_mlflow
-    build:
-      context: .
-      dockerfile: docker/mlflow.Dockerfile
-      args:
-        - MLFLOW_VERSION=${MLFLOW_VERSION:-2.14.1}
-    image: flumendata/mlflow:${MLFLOW_VERSION:-2.14.1}
-    hostname: mlflow
-    ports:
-      - "${MLFLOW_PORT:-5000}:5000"
-    env_file:
-      - ./config/mlflow/server.env
-    environment:
-      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
-      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
-      - MLFLOW_S3_ENDPOINT_URL=${MINIO_SERVER_URL}
-      - AWS_DEFAULT_REGION=us-east-1
-    volumes:
-      - flumen_mlflow_data:/opt/mlflow
-    command: >
-      sh -c "mlflow server
-      --host $$MLFLOW_HOST
-      --port 5000
-      --backend-store-uri $$MLFLOW_BACKEND_STORE_URI
-      --default-artifact-root $$MLFLOW_ARTIFACT_ROOT"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "sh", "-c", "curl -f http://localhost:5000/"]
-      interval: 60s
-      timeout: 20s
-      retries: 5
-      start_period: 40s
-    restart: unless-stopped
-
 # =============================================================================
 # Named Volumes
 # =============================================================================
@@ -146,29 +72,6 @@ volumes:
     name: flumen_shared_data
     driver: local
 
-  flumen_mlflow_data:
-    name: flumen_mlflow_data
-    driver: local
-
-  # Reference Tier 0 volumes
-  flumen_postgres_data:
-    external: true
-  flumen_valkey_data:
-    external: true
-  flumen_minio_data:
-    external: true
-
-  # Reference Tier 1 volumes
-  flumen_hive_warehouse:
-    external: true
-  flumen_spark_conf:
-    external: true
-  flumen_spark_ivy:
-    external: true
-  flumen_spark_work:
-    external: true
-  flumen_spark_logs:
-    external: true
 
 # =============================================================================
 # Networks

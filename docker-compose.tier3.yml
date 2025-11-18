@@ -49,15 +49,12 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-      valkey:
-        condition: service_healthy
     ports:
       - "${SUPERSET_PORT:-8088}:8088"
     env_file:
       - ./config/superset/superset.env
     environment:
       SUPERSET_CONFIG_PATH: /app/superset_home/superset_config.py
-      REDIS_URL: redis://valkey:${VALKEY_PORT:-6379}/0
       _PIP_ADDITIONAL_REQUIREMENTS: "psycopg2-binary sqlalchemy-trino gevent>=24.2.1"
     volumes:
       - superset_home:/app/superset_home
@@ -83,46 +80,7 @@ services:
       retries: 5
       start_period: 90s
     restart: unless-stopped
-  # =============================================================================
-  # Airflow - All-in-one scheduler + webserver
-  # =============================================================================
-  airflow:
-    container_name: flumen_airflow
-    image: apache/airflow:${AIRFLOW_VERSION:-3.1.2}
-    hostname: airflow
-    depends_on:
-      postgres:
-        condition: service_healthy
-      valkey:
-        condition: service_healthy
-    ports:
-      - "${AIRFLOW_PORT:-8085}:8080"
-    env_file:
-      - ./config/airflow/airflow.env
-    volumes:
-      - airflow_dags:/opt/airflow/dags
-      - airflow_logs:/opt/airflow/logs
-      - airflow_plugins:/opt/airflow/plugins
-    command:
-      - standalone
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-    restart: unless-stopped
-
 volumes:
   superset_home:
     name: flumen_superset_home
-    driver: local
-  airflow_dags:
-    name: flumen_airflow_dags
-    driver: local
-  airflow_logs:
-    name: flumen_airflow_logs
-    driver: local
-  airflow_plugins:
-    name: flumen_airflow_plugins
     driver: local

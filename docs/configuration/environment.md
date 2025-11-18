@@ -15,13 +15,15 @@ templates/               # Source templates
 ├── spark/
 │   ├── spark-defaults.conf.tpl
 │   └── spark-env.sh.tpl
-├── dbt/
-│   ├── profiles.yml.tpl
-│   └── project/
+├── jupyterlab/
+│   └── spark-defaults.conf.tpl
 ├── minio/
 │   └── policy-readonly.json.tpl
-└── valkey/
-    └── valkey.conf.tpl
+├── superset/
+│   ├── superset.env.tpl
+│   └── superset_config.py.tpl
+└── trino/
+    └── catalog/
 
 config/                  # Generated files (DO NOT EDIT)
 ├── hive/
@@ -30,13 +32,15 @@ config/                  # Generated files (DO NOT EDIT)
 │   ├── spark-defaults.conf
 │   ├── spark-env.sh
 │   └── hive-site.xml (copied from hive/)
-├── dbt/
-│   ├── profiles.yml
-│   └── project/
+├── jupyterlab/
+│   └── spark-defaults.conf
 ├── minio/
 │   └── policy-readonly.json
-└── valkey/
-    └── valkey.conf
+├── superset/
+│   ├── superset.env
+│   └── superset_config.py
+└── trino/
+    └── catalog/
 ```
 
 ### Regenerating Configuration
@@ -51,9 +55,9 @@ make config
 make config-hive
 make config-spark
 make config-minio
-make config-valkey
 make config-jupyterlab
-make config-dbt
+make config-trino
+make config-superset
 
 # Restart services to apply changes
 make restart
@@ -88,29 +92,6 @@ docker exec -it flumen_postgres psql -U ${POSTGRES_USER} -d ${POSTGRES_DB}
 POSTGRES_PASSWORD=newsecurepass123
 make config
 make restart
-```
-
-### Valkey (Redis)
-
-```bash
-# Valkey configuration
-VALKEY_PORT=6379              # External port
-VALKEY_PASSWORD=               # Optional password (leave empty for no auth)
-```
-
-**Used by:**
-- Valkey container
-- Spark (optional caching)
-
-**Examples:**
-```bash
-# Set password
-VALKEY_PASSWORD=valkey123
-make config-valkey
-make restart
-
-# Connect with password
-docker exec -it flumen_valkey redis-cli -a ${VALKEY_PASSWORD}
 ```
 
 ### MinIO
@@ -224,62 +205,6 @@ make restart
 !!! warning "Version Compatibility"
     Ensure Delta Lake, Spark, and Scala versions are compatible. Check [Delta Lake releases](https://docs.delta.io/latest/releases.html).
 
-### dbt
-
-```bash
-# dbt workspace defaults
-DBT_TARGET_SCHEMA=analytics   # PostgreSQL schema for dbt models
-DBT_THREADS=4                 # Parallelism for dbt runs
-DBT_CORE_VERSION=1.7.14       # Version of dbt-core installed in the dbt image
-DBT_ADAPTERS=dbt-postgres==1.7.14  # Space-separated list of adapter packages to install
-```
-
-**Used by:**
-- `templates/dbt/profiles.yml.tpl`
-- dbt container launched via `make up-tier2`
-- Make targets such as `run-dbt`, `test-dbt`, `build-dbt`
-- `docker/dbt.Dockerfile` build args (via docker-compose)
-
-**Examples:**
-```bash
-# Deploy into a dedicated schema
-DBT_TARGET_SCHEMA=analytics_dev
-make config-dbt
-
-# Increase parallelism for heavier pipelines
-DBT_THREADS=8
-make config-dbt
-
-# Include Spark adapter alongside Postgres
-DBT_ADAPTERS="dbt-postgres==1.7.14 dbt-spark[PyHive]==1.7.2"
-make up-tier2
-```
-
-### MLflow
-
-```bash
-# MLflow tracking server
-MLFLOW_PORT=5000                 # Host/UI port
-MLFLOW_ARTIFACT_PATH=mlflow      # Prefix inside the MinIO bucket
-MLFLOW_VERSION=2.14.1            # mlflow package version baked into docker/mlflow.Dockerfile
-```
-
-**Used by:**
-- `templates/mlflow/server.env.tpl`
-- `docker/mlflow.Dockerfile` build args
-- `docker-compose.tier2.yml` service definition (ports and command)
-
-**Examples:**
-```bash
-# Run MLflow on another port
-MLFLOW_PORT=5050
-make up-tier2
-
-# Store artifacts in a separate prefix
-MLFLOW_ARTIFACT_PATH=experiments/mlflow
-make config-mlflow
-```
-
 ### Trino
 
 ```bash
@@ -341,41 +266,6 @@ make config-superset
 SUPERSET_VERSION=5.1.0
 make build-superset
 make up-tier3
-
-### Airflow
-
-```bash
-# Airflow all-in-one
-AIRFLOW_VERSION=3.1.2              # Apache Airflow image tag
-AIRFLOW_PORT=8085                  # Host/UI port mapped to webserver 8080
-AIRFLOW_DB_NAME=airflow            # Metadata database inside PostgreSQL
-AIRFLOW_SECRET_KEY=flumen_airflow_secret
-_AIRFLOW_WWW_USER_CREATE=true      # Ask entrypoint to bootstrap a UI user
-_AIRFLOW_WWW_USER_USERNAME=admin
-_AIRFLOW_WWW_USER_PASSWORD=admin123
-_AIRFLOW_WWW_USER_EMAIL=admin@flumen.local
-_AIRFLOW_WWW_USER_FIRSTNAME=Airflow
-_AIRFLOW_WWW_USER_LASTNAME=Admin
-_AIRFLOW_WWW_USER_ROLE=Admin
-_PIP_ADDITIONAL_REQUIREMENTS=      # Optional dev-only packages to install on startup
-AIRFLOW_FERNET_KEY=dXNlLWFjdHVhbC1mZXJuZXQta2V5LWhlcmUtbGF0ZXIh
-```
-
-**Used by:**
-- `templates/airflow/airflow.env.tpl`
-- `makefiles/airflow.mk` (config + db bootstrap)
-- `docker-compose.tier3.yml` Airflow service definition
-
-**Examples:**
-```bash
-# Run Airflow on a different port
-AIRFLOW_PORT=8095
-make up-tier3
-
-# Rotate admin credentials
-_AIRFLOW_WWW_USER_USERNAME=orchestrator
-_AIRFLOW_WWW_USER_PASSWORD="$(openssl rand -base64 16)"
-make config-airflow
 ```
 ```
 

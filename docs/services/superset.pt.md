@@ -19,7 +19,6 @@
   - `SUPERSET_ADMIN_*` – usuário admin inicial (usuário, senha, e-mail, nomes).
 - Dependências em runtime:
   - **Banco de metadados**: PostgreSQL (`postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${SUPERSET_DB_NAME}`).
-  - **Cache / assíncrono**: Valkey via `REDIS_URL=redis://valkey:${VALKEY_PORT}/0`.
   - **Volume nomeado**: `flumen_superset_home` montado em `/app/superset_home` (configurações, uploads, estado).
 
 ## Uso
@@ -27,7 +26,7 @@
 make build-superset    # (Opcional) constrói a imagem customizada
 make config-superset   # Renderiza env + config
 make superset-db       # Garante o banco de metadados no PostgreSQL
-make up-tier3          # Sobe Trino + Superset + Airflow
+make up-tier3          # Sobe Trino + Superset
 make health-superset   # Verifica saúde via HTTP
 make logs-superset     # Segue os logs
 make shell-superset    # Abre bash dentro do container

@@ -47,15 +47,19 @@ make test
 │   └── spark.Dockerfile       # Spark with health check utilities
 ├── makefiles/                 # Service-specific Makefile modules
 │   ├── postgres.mk
-│   ├── valkey.mk
 │   ├── minio.mk
 │   ├── hive.mk
-│   └── spark.mk
+│   ├── spark.mk
+│   ├── jupyterlab.mk
+│   ├── trino.mk
+│   └── superset.mk
 ├── templates/                 # Configuration templates
 │   ├── hive/
 │   ├── spark/
 │   ├── minio/
-│   └── valkey/
+│   ├── jupyterlab/
+│   ├── trino/
+│   └── superset/
 ├── docs/                      # MkDocs Material documentation
 │   ├── en/                   # English documentation
 │   └── pt/                   # Portuguese documentation

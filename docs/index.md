@@ -4,8 +4,9 @@
 > Start everything with a single command: `make init`.
 
 !!! tip "Project Status"
-    **Tier 0 is validated**: PostgreSQL, Valkey and MinIO are up with healthchecks, named volumes and config under `/config`.
+    **Tier 0 is validated**: PostgreSQL and MinIO expose healthchecks, named volumes, and generated config under `/config`.
     **Tier 1 is operational**: Apache Spark 4.0.1, Hive Metastore 4.1.0, and Delta Lake 4.0 are deployed and tested.
+    **Tier 2 & Tier 3 are live**: JupyterLab, Trino, and Superset are ready for demos.
 
 ## Quickstart
 
@@ -30,11 +31,31 @@ FlumenData implements a modern lakehouse architecture with:
 
 ```mermaid
 graph TD
-    A[MinIO S3] --> B[Delta Lake Tables]
-    B --> C[Hive Metastore]
-    C --> D[Spark 4.0.1]
-    E[PostgreSQL] --> C
-    F[Valkey Cache] --> D
+    subgraph Tier0
+        MINIO[MinIO S3]
+        POSTGRES[PostgreSQL]
+    end
+    subgraph Tier1
+        SPARK[Spark 4.0.1]
+        HIVE[Hive Metastore]
+        DELTA[Delta Lake Tables]
+    end
+    subgraph Tier2
+        JUPYTER[JupyterLab]
+    end
+    subgraph Tier3
+        TRINO[Trino]
+        SUPERSET[Superset]
+    end
+
+    MINIO --> DELTA
+    POSTGRES --> HIVE
+    HIVE --> SPARK
+    SPARK --> DELTA
+    TRINO --> HIVE
+    TRINO --> MINIO
+    SUPERSET --> TRINO
+    JUPYTER --> SPARK
 ```
 
 ### Technology Stack
@@ -50,8 +71,12 @@ graph TD
 **Compute Layer:**
 - **Apache Spark 4.0.1** - Distributed query and processing engine (Master + 2 Workers)
 
-**Cache Layer:**
-- **Valkey** - Redis-compatible in-memory cache
+**Analytics Layer:**
+- **JupyterLab** - Browser-based PySpark IDE baked into the stack
+
+**SQL & BI Layer:**
+- **Trino** - Distributed SQL gateway across the lakehouse
+- **Apache Superset** - Dashboards, charts, and SQL Lab
 
 ## Project Structure
 
@@ -75,9 +100,6 @@ graph TD
 - [**PostgreSQL 17.6**](services/postgres.md) – Relational metadata store
   `postgres:17.6-alpine3.22`
 
-- [**Valkey 9.0.0**](services/valkey.md) – In-memory key/value store
-  `valkey/valkey:9.0.0-alpine3.22`
-
 - [**MinIO**](services/minio.md) – S3-compatible object storage
   `minio/minio:RELEASE.2025-09-07T16-13-09Z`
 
@@ -88,6 +110,19 @@ graph TD
 
 - [**Apache Spark 4.0.1**](services/spark.md) – Distributed compute engine
   Custom image: `flumendata/spark:4.0.1-health`
+
+### Tier 2 - Analytics & Development
+
+- [**JupyterLab (Spark 4.0.1)**](services/jupyterlab.md) – Ready-to-use PySpark IDE
+  Custom image: `flumendata/jupyterlab:spark-4.0.1`
+
+### Tier 3 - SQL & BI
+
+- [**Trino 450**](services/trino.md) – Federated SQL query engine
+  Image: `trinodb/trino:450`
+
+- [**Apache Superset 5.0.0**](services/superset.md) – BI dashboards & charts
+  Custom image: `flumendata/superset:5.0.0`
 
 ## Key Features
 
@@ -176,7 +211,7 @@ make clean         # Stop and remove all data (DANGEROUS)
 - All **code and comments** are in **English**
 - Configuration is generated via **Makefile** targets into `/config/` - never edit rendered files manually
 - Every service must have a **healthcheck**, **named volumes**, and static config under `/config/`
-- Documentation is maintained in both **English** (`/docs/en/`) and **Portuguese** (`/docs/pt/`)
+- Documentation is maintained in both **English** (`docs/*.md`) and **Portuguese** (`docs/*.pt.md`)
 
 ## Web Interfaces
 
@@ -185,17 +220,16 @@ After running `make init`, access these UIs:
 - **Spark Master UI**: http://localhost:8080
 - **MinIO Console**: http://localhost:9001 (minioadmin / minioadmin123)
 - **JupyterLab**: http://localhost:8888 (run `make token-jupyterlab` for access)
-- **MLflow Tracking UI**: http://localhost:${MLFLOW_PORT}
+- **Trino Console**: http://localhost:${TRINO_PORT}
 - **Superset**: http://localhost:${SUPERSET_PORT} (login: `admin` / `admin123`)
-- **Airflow**: http://localhost:${AIRFLOW_PORT} (login: `admin` / `admin123`)
 
 ## Roadmap
 
-- ✅ **Tier 0 – Foundation**: PostgreSQL, Valkey, MinIO
+- ✅ **Tier 0 – Foundation**: PostgreSQL, MinIO
 - ✅ **Tier 1 – Data Platform**: Spark, Hive Metastore, Delta Lake
-- 🔄 **Tier 2 – Development & ML**: JupyterLab, dbt, MLflow
-- 🔄 **Tier 3 – Orchestration & BI**: Trino, Superset, Airflow
-- 📋 **Tier 4 – Observability**: Prometheus, Grafana
+- ✅ **Tier 2 – Analytics & Development**: JupyterLab
+- ✅ **Tier 3 – SQL & BI**: Trino, Superset
+- 📋 **Tier 4 – Observability**: Prometheus, Grafana (planned)
 
 ## Contributing
 

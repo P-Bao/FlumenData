@@ -23,11 +23,13 @@ Complete environment initialization - recommended for first-time setup.
 **What it does:**
 1. Generates all configuration files
 2. Builds custom Docker images
-3. Starts Tier 0 services (PostgreSQL, Valkey, MinIO)
+3. Starts Tier 0 services (PostgreSQL, MinIO)
 4. Initializes MinIO buckets
 5. Starts Tier 1 services (Hive Metastore, Spark)
-6. Runs health checks
-7. Displays summary
+6. Starts Tier 2 services (JupyterLab)
+7. Starts Tier 3 services (Trino, Superset)
+8. Runs health checks
+9. Displays summary
 
 **Usage:**
 ```bash
@@ -56,16 +58,12 @@ make config
 
 # Generate specific service config
 make config-postgres
-make config-valkey
 make config-minio
 make config-hive
 make config-spark
 make config-jupyterlab
-make config-dbt
-make config-mlflow
 make config-trino
 make config-superset
-make config-airflow
 ```
 
 **When to use:**
@@ -88,7 +86,7 @@ make up
 Start only Tier 0 foundation services.
 
 ```bash
-make up-tier0  # PostgreSQL, Valkey, MinIO
+make up-tier0  # PostgreSQL, MinIO
 ```
 
 #### `make up-tier1`
@@ -99,17 +97,17 @@ make up-tier1  # Hive Metastore, Spark cluster
 ```
 
 #### `make up-tier2`
-Start analytics & ML services.
+Start analytics & development services.
 
 ```bash
-make up-tier2  # JupyterLab, dbt, MLflow
+make up-tier2  # JupyterLab
 ```
 
 #### `make up-tier3`
-Start orchestration & BI services.
+Start SQL & BI services.
 
 ```bash
-make up-tier3  # Trino + Superset + Airflow
+make up-tier3  # Trino + Superset
 ```
 
 ### Stopping Services
@@ -163,7 +161,6 @@ make health
 **Output:**
 ```
 ✓ postgres is healthy
-✓ valkey is healthy
 ✓ minio is healthy
 ✓ hive-metastore is healthy
 ✓ spark-master is healthy
@@ -174,27 +171,23 @@ make health
 ### Tier-Specific Health Checks
 
 ```bash
-make health-tier0   # PostgreSQL, Valkey, MinIO
+make health-tier0   # PostgreSQL, MinIO
 make health-tier1   # Hive Metastore, Spark cluster
-make health-tier2   # JupyterLab, dbt, MLflow
-make health-tier3   # Trino + Superset + Airflow
+make health-tier2   # JupyterLab
+make health-tier3   # Trino + Superset
 ```
 
 ### Individual Service Health
 
 ```bash
 make health-postgres
-make health-valkey
 make health-minio
 make health-hive
 make health-spark-master
 make health-spark-workers
 make health-jupyterlab
-make health-dbt
-make health-mlflow
 make health-trino
 make health-superset
-make health-airflow
 ```
 
 ## Superset Commands
@@ -220,36 +213,6 @@ Open an interactive shell inside the Superset container (handy for debugging or 
 make shell-superset
 ```
 
-## Airflow Commands
-
-### `make config-airflow`
-Render the Airflow environment file (`config/airflow/airflow.env`) with the credentials from `.env`.
-
-```bash
-make config-airflow
-```
-
-### `make airflow-db`
-Create the `$(AIRFLOW_DB_NAME)` database inside PostgreSQL if it doesn’t already exist.
-
-```bash
-make airflow-db
-```
-
-### `make logs-airflow`
-Tail the Airflow container logs (webserver + scheduler).
-
-```bash
-make logs-airflow
-```
-
-### `make shell-airflow`
-Open a shell inside the Airflow container for ad‑hoc debugging.
-
-```bash
-make shell-airflow
-```
-
 ## Testing Commands
 
 ### `make test`
@@ -262,13 +225,10 @@ make test
 
 **What it tests:**
 - PostgreSQL: Connection, table creation, data persistence
-- Valkey: Connection, SET/GET operations
 - MinIO: Bucket creation, object upload/download
 - Hive Metastore: Database creation, metadata storage
 - Spark: Job submission, Delta Lake operations
 - JupyterLab: HTTP availability probe
-- dbt: `dbt debug` against PostgreSQL
-- MLflow: REST API reachability
 - Trino: CLI query against the coordinator
 
 ### Tier-Specific Tests
@@ -276,21 +236,18 @@ make test
 ```bash
 make test-tier0     # Test foundation services
 make test-tier1     # Test data platform services
-make test-tier2     # Test analytics & ML services
-make test-tier3     # Test orchestration & BI services
+make test-tier2     # Test analytics & automation services
+make test-tier3     # Test SQL & BI services
 ```
 
 ### Individual Service Tests
 
 ```bash
 make test-postgres
-make test-valkey
 make test-minio
 make test-hive
 make test-spark
 make test-jupyterlab
-make test-dbt
-make test-mlflow
 make test-trino
 ```
 
@@ -300,9 +257,9 @@ Verify data survives container restarts:
 
 ```bash
 make persist-postgres
-make persist-valkey
 make persist-minio
 make persist-spark
+make persist-jupyterlab
 ```
 
 ## Verification Commands
@@ -370,14 +327,12 @@ docker-compose -f docker-compose.tier0.yml logs --since=1h
 
 ```bash
 make logs-postgres
-make logs-valkey
 make logs-minio
 make logs-hive
 make logs-spark
 make logs-jupyterlab
-make logs-dbt
-make logs-mlflow
 make logs-trino
+make logs-superset
 ```
 
 **Equivalent to:**
@@ -556,7 +511,6 @@ make ps
 ```
 NAME                    STATUS          PORTS
 flumen_postgres         healthy         0.0.0.0:5432->5432/tcp
-flumen_valkey           healthy         0.0.0.0:6379->6379/tcp
 flumen_minio            healthy         0.0.0.0:9000-9001->9000-9001/tcp
 flumen_hive_metastore   healthy         0.0.0.0:9083->9083/tcp
 flumen_spark_master     healthy         0.0.0.0:7077,8080->7077,8080/tcp

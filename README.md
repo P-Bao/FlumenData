@@ -15,8 +15,10 @@
 FlumenData is an **open-source lakehouse platform** that combines the best of data lakes and data warehouses. Built with Docker Compose, it provides a complete, reproducible environment for modern data engineering and analytics.
 
 **Current Status:**
-- ✅ **Tier 0 (Foundation)**: PostgreSQL, Valkey, MinIO - validated and stable
+- ✅ **Tier 0 (Foundation)**: PostgreSQL, MinIO - validated and stable
 - ✅ **Tier 1 (Data Platform)**: Apache Spark 4.0.1, Hive Metastore 4.1.0, Delta Lake 4.0 - operational
+- ✅ **Tier 2 (Analytics & Development)**: JupyterLab - ready for daily use
+- ✅ **Tier 3 (SQL & BI)**: Trino, Superset - tuned for portfolio demos
 
 ## ✨ Key Features
 
@@ -39,7 +41,6 @@ graph TB
 
     subgraph "Tier 0 - Foundation"
         POSTGRES[PostgreSQL 17.6<br/>Metadata Store]
-        VALKEY[Valkey 9.0<br/>Cache Layer]
         MINIO[MinIO<br/>Object Storage]
     end
 
@@ -47,25 +48,39 @@ graph TB
         DELTA[Delta Lake 4.0<br/>ACID Tables]
     end
 
+    subgraph "Tier 2 - Analytics & Development"
+        JUPYTER[JupyterLab<br/>PySpark Workspace]
+    end
+
+    subgraph "Tier 3 - SQL & BI"
+        TRINO[Trino<br/>Distributed SQL]
+        SUPERSET[Superset<br/>BI Dashboards]
+    end
+
     SPARK --> HIVE
     SPARK --> DELTA
     DELTA --> MINIO
     HIVE --> POSTGRES
     HIVE --> MINIO
-    SPARK --> VALKEY
     SPARK --> MINIO
+    JUPYTER --> SPARK
+    TRINO --> HIVE
+    TRINO --> MINIO
+    SUPERSET --> TRINO
 ```
 
 ### Technology Stack
 
 | Layer | Technology | Version | Purpose |
 |-------|-----------|---------|---------|
-| **Storage** | MinIO | 2025-09-07 | S3-compatible object storage |
+| **Storage** | MinIO | RELEASE.2025-09-07 | S3-compatible object storage |
 | **Storage** | Delta Lake | 4.0.0 | ACID table format with time travel |
 | **Metadata** | Hive Metastore | 4.1.0 | Centralized catalog |
 | **Metadata** | PostgreSQL | 17.6 | Metadata backend |
 | **Compute** | Apache Spark | 4.0.1 | Distributed query engine |
-| **Cache** | Valkey | 9.0.0 | In-memory cache |
+| **Analytics** | JupyterLab | spark-4.0.1 | PySpark notebooks & exploration |
+| **SQL** | Trino | 450 | Distributed SQL engine |
+| **BI** | Superset | 5.0.0 | Dashboards and data exploration |
 
 ## 🚀 Quick Start
 
@@ -129,28 +144,26 @@ After running `make init`, access:
   - Username: `minioadmin`
   - Password: `minioadmin123`
 - **JupyterLab**: http://localhost:8888 - Data exploration notebooks (`make token-jupyterlab` to fetch the access token)
-- **MLflow Tracking UI**: http://localhost:${MLFLOW_PORT} - Experiment tracking dashboard
+- **Trino Console**: http://localhost:${TRINO_PORT} - Query history and thread pools
 - **Superset**: http://localhost:${SUPERSET_PORT} - BI dashboards (login: `admin` / `admin123`)
-- **Airflow**: http://localhost:${AIRFLOW_PORT} - Workflow orchestration UI (login: `admin` / `admin123`)
 
 ## 📖 Documentation
 
 Comprehensive documentation is available in both English and Portuguese:
 
-- **English**: [docs/en/](docs/en/index.md)
-- **Portuguese**: [docs/pt/](docs/pt/index.md)
+- **English**: [docs/index.md](docs/index.md)
+- **Portuguese**: [docs/index.pt.md](docs/index.pt.md)
 
 Key documentation pages:
-- [Installation Guide](docs/en/getting-started/installation.md)
-- [Quick Start Tutorial](docs/en/getting-started/quickstart.md)
-- [Architecture Deep Dive](docs/en/getting-started/architecture.md)
-- [Hive Metastore](docs/en/services/hive.md)
-- [Apache Spark](docs/en/services/spark.md)
-- [Apache Superset](docs/en/services/superset.md)
-- [Apache Airflow](docs/en/services/airflow.md)
-- [Configuration](docs/en/configuration/environment.md)
-- [Make Commands Reference](docs/en/configuration/commands.md)
-- [Contributing Guide](docs/en/development/contributing.md)
+- [Installation Guide](docs/getting-started/installation.md)
+- [Quick Start Tutorial](docs/getting-started/quickstart.md)
+- [Architecture Deep Dive](docs/getting-started/architecture.md)
+- [Hive Metastore](docs/services/hive.md)
+- [Apache Spark](docs/services/spark.md)
+- [Apache Superset](docs/services/superset.md)
+- [Configuration](docs/configuration/environment.md)
+- [Make Commands Reference](docs/configuration/commands.md)
+- [Contributing Guide](docs/development/contributing.md)
 
 ## 🛠️ Common Commands
 
@@ -202,32 +215,22 @@ FlumenData/
 │   ├── hive.Dockerfile        # Hive Metastore + PostgreSQL JDBC
 │   ├── spark.Dockerfile       # Spark with health checks
 │   └── superset.Dockerfile    # Superset with psycopg2 + sqlalchemy-trino
-├── docs/                       # MkDocs Material documentation
-│   ├── en/                    # English documentation
-│   └── pt/                    # Portuguese documentation
+├── docs/                       # MkDocs Material documentation (EN + PT)
 ├── makefiles/                  # Service-specific Makefiles
 │   ├── postgres.mk
-│   ├── valkey.mk
 │   ├── minio.mk
 │   ├── hive.mk
 │   ├── spark.mk
 │   ├── jupyterlab.mk
-│   ├── dbt.mk
-│   ├── mlflow.mk
 │   ├── trino.mk
-│   ├── superset.mk
-│   └── airflow.mk
+│   └── superset.mk
 ├── templates/                  # Configuration templates
 │   ├── hive/
 │   ├── spark/
 │   ├── minio/
-│   ├── valkey/
 │   ├── jupyterlab/
-│   ├── dbt/
-│   ├── mlflow/
 │   ├── trino/
-│   ├── superset/
-│   └── airflow/
+│   └── superset/
 ├── .env                        # Environment variables (not in git)
 ├── docker-compose.tier0.yml    # Foundation services
 ├── docker-compose.tier1.yml    # Data platform services
@@ -250,15 +253,15 @@ FlumenData is perfect for:
 
 ## 🔄 Roadmap
 
-- ✅ **Tier 0 – Foundation**: PostgreSQL, Valkey, MinIO
+- ✅ **Tier 0 – Foundation**: PostgreSQL, MinIO
 - ✅ **Tier 1 – Data Platform**: Spark, Hive Metastore, Delta Lake
-- ✅ **Tier 2 – Development & ML**: JupyterLab, dbt, MLflow
-- 🔄 **Tier 3 – Orchestration & BI**: Trino, Superset, Airflow
-- 📋 **Tier 4 – Observability**: Prometheus, Grafana
+- ✅ **Tier 2 – Analytics & Development**: JupyterLab
+- ✅ **Tier 3 – SQL & BI**: Trino, Superset
+- 📋 **Tier 4 – Observability**: Prometheus, Grafana (planned)
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](docs/en/development/contributing.md) for details.
+We welcome contributions! Please see our [Contributing Guide](docs/development/contributing.md) for details.
 
 Key guidelines:
 - All code and comments in English
@@ -308,7 +311,7 @@ make reset
 make clean
 ```
 
-For more troubleshooting tips, see the [documentation](docs/en/getting-started/installation.md#troubleshooting-installation).
+For more troubleshooting tips, see the [documentation](docs/getting-started/installation.md#troubleshooting-installation).
 
 ## 📄 License
 
@@ -322,7 +325,9 @@ FlumenData builds on amazing open-source projects:
 - [Apache Hive](https://hive.apache.org/)
 - [MinIO](https://min.io/)
 - [PostgreSQL](https://www.postgresql.org/)
-- [Valkey](https://valkey.io/)
+- [Trino](https://trino.io/)
+- [Apache Superset](https://superset.apache.org/)
+- [Project Jupyter](https://jupyter.org/)
 
 ## 📧 Contact
 

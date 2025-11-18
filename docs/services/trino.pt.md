@@ -18,7 +18,7 @@
 
 ## Uso
 ```bash
-make up-tier3          # Sobe Trino + Superset + Airflow (requer tiers 0–2 ativos)
+make up-tier3          # Sobe Trino + Superset (requer tiers 0–2 ativos)
 make shell-trino       # Abre um shell dentro do container
 make sql-trino         # Inicia o CLI conectado ao coordenador
 ```
@@ -31,7 +31,7 @@ A UI fica disponível em `http://localhost:${TRINO_PORT}` quando o container est
 - O healthcheck do Docker replica o mesmo endpoint, então `docker compose ps` reflete o status real.
 
 ## Conectividade
-- O catálogo Hive aponta para o mesmo metastore usado por Spark/dbt, logo schemas e tabelas Delta aparecem automaticamente.
+- O catálogo Hive aponta para o mesmo metastore usado pelos jobs Spark do JupyterLab, logo schemas e tabelas Delta aparecem automaticamente.
 - As credenciais S3 apontam para o MinIO (`s3://$(MINIO_BUCKET)/warehouse`), permitindo leitura/escrita via Trino.
 
 ## Troubleshooting
