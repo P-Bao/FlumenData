@@ -143,6 +143,7 @@ After running `make init`, access:
 - **MinIO Console**: http://localhost:9001 - Object storage management
   - Username: `minioadmin`
   - Password: `minioadmin123`
+  - Buckets: `lakehouse` (Delta tables), `storage` (ingest-ready files)
 - **JupyterLab**: http://localhost:8888 - Data exploration notebooks (`make token-jupyterlab` to fetch the access token)
 - **Trino Console**: http://localhost:${TRINO_PORT} - Query history and thread pools
 - **Superset**: http://localhost:${SUPERSET_PORT} - BI dashboards (login: `admin` / `admin123`)

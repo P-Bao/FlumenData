@@ -12,6 +12,10 @@
 - Healthcheck: `GET /minio/health/live` on container.
 - MinIO Client (mc) used inside the Compose network with a pinned image for tests/backups.
 
+### Default Buckets
+- `MINIO_BUCKET` (default `lakehouse`): Delta Lake warehouse at `s3a://lakehouse/warehouse`.
+- `MINIO_STORAGE_BUCKET` (default `storage`): Staging bucket for CSV/XLSX/ZIP files prior to ingestion.
+
 ## How it is generated
 - Target: `make config-minio` renders templates into `/config/minio/` using envsubst (local or Docker fallback).
 

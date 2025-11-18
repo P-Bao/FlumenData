@@ -24,10 +24,11 @@ endef
 
 # Initialize MinIO: create lakehouse bucket
 init-minio:
-	@echo "[minio:init] creating bucket: $$MINIO_BUCKET..."
+	@echo "[minio:init] creating buckets: $$MINIO_BUCKET (lakehouse) and $$MINIO_STORAGE_BUCKET (staging)..."
 	@$(call mc, alias set flumen http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD)
 	@$(call mc, mb flumen/$$MINIO_BUCKET --ignore-existing || true)
-	@echo "[minio:init] bucket $$MINIO_BUCKET ready"
+	@$(call mc, mb flumen/$$MINIO_STORAGE_BUCKET --ignore-existing || true)
+	@echo "[minio:init] buckets ready"
 
 test-minio:
 	@echo "[minio:test] creating bucket, uploading, listing..."

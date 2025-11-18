@@ -143,6 +143,7 @@ Após executar `make init`, acesse:
 - **Console MinIO**: http://localhost:9001 - Gerenciamento de armazenamento de objetos
   - Usuário: `minioadmin`
   - Senha: `minioadmin123`
+  - Buckets: `lakehouse` (tabelas Delta) e `storage` (arquivos para ingestão)
 - **JupyterLab**: http://localhost:8888 - Notebooks para exploração de dados (`make token-jupyterlab` para obter o token)
 - **Console Trino**: http://localhost:${TRINO_PORT} - Histórico e status de consultas
 - **Superset**: http://localhost:${SUPERSET_PORT} - Dashboards de BI (login: `admin` / `admin123`)

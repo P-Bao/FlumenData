@@ -219,6 +219,7 @@ Após executar `make init`, acesse essas UIs:
 
 - **Interface Spark Master**: http://localhost:8080
 - **Console MinIO**: http://localhost:9001 (minioadmin / minioadmin123)
+- Buckets: `lakehouse` (tabelas Delta) e `storage` (arquivos para ingestão)
 - **JupyterLab**: http://localhost:8888 (execute `make token-jupyterlab` para obter o token)
 - **Console Trino**: http://localhost:${TRINO_PORT}
 - **Superset**: http://localhost:${SUPERSET_PORT} (login: `admin` / `admin123`)

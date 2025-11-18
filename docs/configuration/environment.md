@@ -102,7 +102,8 @@ MINIO_ROOT_USER=minioadmin           # Admin username
 MINIO_ROOT_PASSWORD=minioadmin123    # Admin password (min 8 chars)
 MINIO_SERVER_URL=http://minio:9000   # Internal S3 endpoint
 MINIO_CONSOLE_PORT=9001              # Console UI port
-MINIO_BUCKET=lakehouse               # Default bucket name
+MINIO_BUCKET=lakehouse               # Delta Lake warehouse bucket
+MINIO_STORAGE_BUCKET=storage         # Staging bucket for raw files
 ```
 
 **Used by:**
