@@ -12,12 +12,13 @@ services:
       context: .
       dockerfile: docker/jupyterlab.Dockerfile
       args:
+        - SPARK_VERSION=${SPARK_VERSION:-4.0.1}
         - HADOOP_AWS_VERSION=${HADOOP_AWS_VERSION}
         - AWS_SDK_BUNDLE_VERSION=${AWS_SDK_BUNDLE_VERSION}
         - POSTGRESQL_JDBC_VERSION=${POSTGRESQL_JDBC_VERSION}
         - DELTA_VERSION=${DELTA_VERSION}
         - SCALA_BINARY_VERSION=${SCALA_BINARY_VERSION}
-    image: flumendata/jupyterlab:spark-4.0.1
+    image: flumendata/jupyterlab:spark-${SPARK_VERSION:-4.0.1}
     hostname: jupyterlab
     ports:
       - "8888:8888"

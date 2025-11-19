@@ -35,8 +35,8 @@ O FlumenData foi testado em:
 ### 1. Clone o Repositório
 
 ```bash
-git clone https://github.com/flumendata/flumendata.git
-cd flumendata
+git clone https://github.com/lucianomauda/FlumenData.git
+cd FlumenData
 ```
 
 ### 2. Verifique o Docker

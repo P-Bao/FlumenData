@@ -1,13 +1,16 @@
-# JupyterLab with PySpark 4.0.1 integration for FlumenData
+# JupyterLab with PySpark integration for FlumenData
 # Build custom image to match FlumenData Spark cluster versions (Python 3.10 to match Spark workers)
+# All versions are passed from docker-compose build args (sourced from .env)
+
 FROM jupyter/scipy-notebook:python-3.10
 
-# Build arguments for version consistency
-ARG HADOOP_AWS_VERSION=3.3.6
-ARG AWS_SDK_BUNDLE_VERSION=1.12.772
-ARG POSTGRESQL_JDBC_VERSION=42.7.4
-ARG DELTA_VERSION=4.0.0
-ARG SCALA_BINARY_VERSION=2.13
+# Build arguments for version consistency - values come from .env via docker-compose
+ARG SPARK_VERSION
+ARG HADOOP_AWS_VERSION
+ARG AWS_SDK_BUNDLE_VERSION
+ARG POSTGRESQL_JDBC_VERSION
+ARG DELTA_VERSION
+ARG SCALA_BINARY_VERSION
 
 USER root
 
@@ -21,8 +24,7 @@ RUN apt-get update && \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Spark 4.0.1
-ENV SPARK_VERSION=4.0.1
+# Install Spark (version from build arg)
 ENV HADOOP_VERSION=3
 ENV SPARK_HOME=/usr/local/spark
 ENV PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
@@ -39,10 +41,10 @@ USER ${NB_UID}
 
 # Install Python libraries matching FlumenData versions
 RUN pip install --no-cache-dir \
-    # PySpark 4.0.1 (matches cluster)
-    pyspark==4.0.1 \
-    # Delta Lake 4.0.0 (matches cluster)
-    delta-spark==4.0.0 \
+    # PySpark (matches cluster)
+    pyspark==${SPARK_VERSION} \
+    # Delta Lake (matches cluster)
+    delta-spark==${DELTA_VERSION} \
     # AWS/S3/MinIO connectivity
     boto3==1.34.144 \
     s3fs==2024.6.1 \
@@ -50,8 +52,9 @@ RUN pip install --no-cache-dir \
     psycopg2-binary==2.9.9 \
     sqlalchemy==2.0.31 \
     # Data manipulation and analysis
-    pandas==2.2.2 \
+    pandas==2.3.3 \
     pyarrow==16.1.0 \
+    polars==1.35.2 \
     # Visualization
     matplotlib==3.9.0 \
     seaborn==0.13.2 \

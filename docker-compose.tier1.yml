@@ -5,10 +5,11 @@ services:
       context: .
       dockerfile: docker/hive.Dockerfile
       args:
+        HIVE_VERSION: ${HIVE_VERSION:-4.1.0}
         POSTGRESQL_JDBC_VERSION: ${POSTGRESQL_JDBC_VERSION}
         HADOOP_AWS_VERSION: ${HADOOP_AWS_VERSION}
         AWS_SDK_BUNDLE_VERSION: ${AWS_SDK_BUNDLE_VERSION}
-    image: flumendata/hive:standalone-metastore-4.1.0
+    image: flumendata/hive:standalone-metastore-${HIVE_VERSION:-4.1.0}
     container_name: flumen_hive_metastore
     restart: unless-stopped
     environment:
@@ -36,7 +37,9 @@ services:
     build:
       context: .
       dockerfile: docker/spark.Dockerfile
-    image: flumendata/spark:4.0.1-health
+      args:
+        SPARK_VERSION: ${SPARK_VERSION:-4.0.1}
+    image: flumendata/spark:${SPARK_VERSION:-4.0.1}-health
     container_name: flumen_spark_master
     restart: unless-stopped
     environment:
@@ -68,7 +71,7 @@ services:
 
   # Spark Worker 1
   spark-worker1:
-    image: flumendata/spark:4.0.1-health
+    image: flumendata/spark:${SPARK_VERSION:-4.0.1}-health
     container_name: flumen_spark_worker1
     restart: unless-stopped
     user: "0:0"
@@ -105,7 +108,7 @@ services:
 
   # Spark Worker 2
   spark-worker2:
-    image: flumendata/spark:4.0.1-health
+    image: flumendata/spark:${SPARK_VERSION:-4.0.1}-health
     container_name: flumen_spark_worker2
     restart: unless-stopped
     user: "0:0"

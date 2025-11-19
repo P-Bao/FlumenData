@@ -20,8 +20,8 @@
 
 ```bash
 # 1) Clone o repositório
-git clone https://github.com/flumendata/flumendata.git
-cd flumendata
+git clone https://github.com/lucianomauda/FlumenData.git
+cd FlumenData
 
 # 2) Inicialize o ambiente completo
 make init

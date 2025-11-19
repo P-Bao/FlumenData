@@ -1,5 +1,8 @@
 # docker/spark.Dockerfile - Wrap apache/spark to add curl and prepare Ivy cache
-FROM apache/spark:4.0.1
+# Version is passed from docker-compose build args (sourced from .env)
+ARG SPARK_VERSION
+
+FROM apache/spark:${SPARK_VERSION}
 USER root
 # Try apt -> microdnf -> apk
 RUN (apt-get update && apt-get install -y curl procps) ||     (microdnf -y install curl procps && microdnf clean all) ||     (apk add --no-cache curl procps) || true

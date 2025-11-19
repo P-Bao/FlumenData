@@ -212,7 +212,7 @@ git push
 
 2. **Clone FlumenData repo on new machine:**
 ```bash
-git clone https://github.com/flumendata/flumendata.git
+git clone https://github.com/lucianomauda/FlumenData.git
 cd flumendata
 ```
 

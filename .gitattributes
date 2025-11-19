@@ -1,0 +1,28 @@
+# Ensure Unix line endings for shell scripts and templates
+# This prevents issues when running in Docker containers on WSL
+
+*.sh text eol=lf
+*.tpl text eol=lf
+*.py text eol=lf
+*.sql text eol=lf
+*.properties text eol=lf
+*.xml text eol=lf
+*.conf text eol=lf
+*.cfg text eol=lf
+*.env text eol=lf
+
+# Makefiles must use LF
+Makefile text eol=lf
+*.mk text eol=lf
+
+# Documentation
+*.md text eol=lf
+*.txt text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jar binary
+*.gz binary
+*.tar binary
+*.zip binary

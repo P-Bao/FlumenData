@@ -1,5 +1,7 @@
 # syntax=docker/dockerfile:1.6
-ARG SUPERSET_VERSION=5.0.0
+# Version is passed from docker-compose build args (sourced from .env)
+ARG SUPERSET_VERSION
+
 FROM apache/superset:${SUPERSET_VERSION}
 
 USER root

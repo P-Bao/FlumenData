@@ -105,8 +105,8 @@ graph TB
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/flumendata/flumendata.git
-cd flumendata
+git clone https://github.com/lucianomauda/FlumenData.git
+cd FlumenData
 
 # 2. Initialize the environment
 make init
@@ -360,8 +360,8 @@ FlumenData builds on amazing open-source projects:
 
 ## 📧 Contact
 
-- **Issues**: https://github.com/flumendata/flumendata/issues
-- **Discussions**: https://github.com/flumendata/flumendata/discussions
+- **Issues**: https://github.com/lucianomauda/FlumenData/issues
+- **Discussions**: https://github.com/lucianomauda/FlumenData/discussions
 
 ---
 

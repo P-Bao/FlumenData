@@ -1,8 +1,13 @@
-# Apache Hive Standalone Metastore 4.1.0 with PostgreSQL JDBC driver and AWS S3A support
-ARG POSTGRESQL_JDBC_VERSION=42.7.4
-ARG HADOOP_AWS_VERSION=3.3.6
-ARG AWS_SDK_BUNDLE_VERSION=1.12.772
-FROM apache/hive:standalone-metastore-4.1.0
+# Apache Hive Standalone Metastore with PostgreSQL JDBC driver and AWS S3A support
+# Versions are passed from docker-compose build args (sourced from .env)
+ARG HIVE_VERSION
+ARG POSTGRESQL_JDBC_VERSION
+ARG HADOOP_AWS_VERSION
+ARG AWS_SDK_BUNDLE_VERSION
+
+FROM apache/hive:standalone-metastore-${HIVE_VERSION}
+
+# Re-declare ARGs after FROM to make them available in this stage
 ARG POSTGRESQL_JDBC_VERSION
 ARG HADOOP_AWS_VERSION
 ARG AWS_SDK_BUNDLE_VERSION
