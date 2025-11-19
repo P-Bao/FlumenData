@@ -183,17 +183,6 @@ make rebuild         # Rebuild all custom images
 
 ---
 
-## 🎨 Brand & Design
-
-FlumenData has a consistent visual identity. See our [Brand Guidelines](docs/brand.md) for colors, typography, and logo usage.
-
-**Quick Reference:**
-- **Primary Color:** `#157983` (Teal Blue)
-- **Logo Files:** Available in `docs/assets/images/`
-- **Typography:** DM Sans (headings) + Inter (body)
-
----
-
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.

@@ -183,17 +183,6 @@ make rebuild         # Reconstruir todas as imagens customizadas
 
 ---
 
-## 🎨 Marca & Design
-
-FlumenData possui uma identidade visual consistente. Consulte nossas [Diretrizes de Marca](docs/brand.md) para cores, tipografia e uso do logo.
-
-**Referência Rápida:**
-- **Cor Primária:** `#157983` (Azul Teal)
-- **Arquivos de Logo:** Disponíveis em `docs/assets/images/`
-- **Tipografia:** DM Sans (títulos) + Inter (corpo)
-
----
-
 ## 🤝 Contribuindo
 
 Contribuições são bem-vindas! Sinta-se à vontade para enviar um Pull Request.
