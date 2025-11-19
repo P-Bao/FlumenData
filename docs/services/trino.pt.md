@@ -6,7 +6,7 @@
 - Imagem oficial `trinodb/trino:${TRINO_VERSION}` com o conector Hive configurado para o metastore compartilhado.
 
 ## Configuração
-- Templates em `templates/trino/` são renderizados para `config/trino/` via `make config-trino`.
+- Templates em `templates/trino/` são renderizados para `config/trino/` via `python3 flumen config --service trino`.
 - Variáveis de ambiente principais (`.env`):
   - `TRINO_PORT` – porta exposta no host (mapeada para a porta interna 8080).
   - `TRINO_VERSION` – tag da imagem do Trino.
@@ -18,16 +18,16 @@
 
 ## Uso
 ```bash
-make up-tier3          # Sobe Trino + Superset (requer tiers 0–2 ativos)
-make shell-trino       # Abre um shell dentro do container
-make sql-trino         # Inicia o CLI conectado ao coordenador
+python3 flumen up --tier 3          # Sobe Trino + Superset (requer tiers 0–2 ativos)
+python3 flumen shell-trino       # Abre um shell dentro do container
+python3 flumen sql-trino         # Inicia o CLI conectado ao coordenador
 ```
 
 A UI fica disponível em `http://localhost:${TRINO_PORT}` quando o container estiver healthy.
 
 ## Inicialização & Saúde
-- `make init-trino` executa `SHOW CATALOGS` e `SHOW SCHEMAS FROM hive` via CLI para garantir que o coordenador e o conector Hive estejam prontos.
-- `make health-trino` faz um probe HTTP leve em `/v1/info`.
+- Inicialização: A CLI executa `SHOW CATALOGS` e `SHOW SCHEMAS FROM hive` via CLI para garantir que o coordenador e o conector Hive estejam prontos.
+- `python3 flumen health --service trino` faz um probe HTTP leve em `/v1/info`.
 - O healthcheck do Docker replica o mesmo endpoint, então `docker compose ps` reflete o status real.
 
 ## Conectividade
@@ -37,4 +37,4 @@ A UI fica disponível em `http://localhost:${TRINO_PORT}` quando o container est
 ## Troubleshooting
 - **401/Forbidden:** verifique se o catálogo Hive recebeu as credenciais do MinIO (`config/trino/catalog/hive.properties`).
 - **Catálogo ausente:** confirme que o Tier 1 (Hive Metastore) está saudável antes de subir o Tier 3.
-- **Conflito de porta:** ajuste `TRINO_PORT` se `8082` já estiver em uso localmente e rode `make config-trino` antes de `make up-tier3`.
+- **Conflito de porta:** ajuste `TRINO_PORT` se `8082` já estiver em uso localmente e rode `python3 flumen config --service trino` antes de `python3 flumen up --tier 3`.

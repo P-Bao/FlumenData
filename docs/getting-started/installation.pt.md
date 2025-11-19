@@ -6,9 +6,9 @@ Este guia mostra como instalar e configurar o FlumenData no seu sistema.
 
 ### Software Obrigatório
 
+- **Python**: 3.6 ou superior (para CLI do FlumenData)
 - **Docker**: versão 20.10 ou superior
 - **Docker Compose**: versão 2.0 ou superior
-- **Make**: GNU Make (normalmente já instalado em Linux/macOS)
 - **Git**: para clonar o repositório
 
 ### Requisitos de Hardware
@@ -64,7 +64,7 @@ cp .env.example .env
 nano .env
 ```
 
-Caso não exista um `.env.example`, o Makefile gera valores padrão. Variáveis comuns:
+Caso não exista um `.env.example`, a CLI Python gera valores padrão. Variáveis comuns:
 
 ```bash
 # PostgreSQL
@@ -95,7 +95,7 @@ SCALA_BINARY_VERSION=2.13
 Execute o processo completo:
 
 ```bash
-make init
+python3 flumen init
 ```
 
 Este comando irá:
@@ -124,13 +124,13 @@ Confirme que todos os serviços estão em execução:
 
 ```bash
 # Ver containers
-make ps
+python3 flumen ps
 
 # Health check
-make health
+python3 flumen health
 
 # Resumo do ambiente
-make summary
+python3 flumen summary
 ```
 
 ### 6. Acesse as Interfaces Web
@@ -150,18 +150,18 @@ Execute os testes para validar tudo:
 
 ```bash
 # Testar todos os serviços
-make test
+python3 flumen test
 
 # Testar tiers específicos
-make test-tier0    # PostgreSQL, MinIO
-make test-tier1    # Hive Metastore, Spark
+python3 flumen test --tier 0    # PostgreSQL, MinIO
+python3 flumen test --tier 1    # Hive Metastore, Spark
 ```
 
 ### Crie Seu Primeiro Banco
 
 ```bash
 # Abrir shell do Spark SQL
-make shell-spark-sql
+python3 flumen shell-spark-sql
 
 # Criar banco
 CREATE DATABASE my_database
@@ -195,8 +195,8 @@ Se alguma porta estiver ocupada, ajuste o `.env`:
 POSTGRES_PORT=5433
 
 # Regenerar configuração
-make config
+python3 flumen config
 
 # Reiniciar serviços
-make restart
+python3 flumen restart
 ```

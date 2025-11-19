@@ -6,9 +6,11 @@ This guide will help you install and set up FlumenData on your system.
 
 ### Required Software
 
+- **Python 3.6+**: Required for FlumenData CLI
+  - Linux/macOS: Usually pre-installed
+  - Windows: Install via [Microsoft Store](https://apps.microsoft.com/detail/9nrwmjp3717k) or [python.org](https://www.python.org/downloads/)
 - **Docker**: Version 20.10 or higher
 - **Docker Compose**: Version 2.0 or higher
-- **Make**: GNU Make (usually pre-installed on Linux/macOS)
 - **Git**: For cloning the repository
 
 ### Hardware Requirements
@@ -95,7 +97,7 @@ SCALA_BINARY_VERSION=2.13
 Run the complete initialization process:
 
 ```bash
-make init
+python3 flumen init
 ```
 
 This command will:
@@ -124,13 +126,13 @@ Check that all services are running:
 
 ```bash
 # View all containers
-make ps
+python3 flumen ps
 
 # Check health status
-make health
+python3 flumen health
 
 # Display environment summary
-make summary
+python3 flumen summary
 ```
 
 ### 6. Access Web Interfaces
@@ -150,18 +152,18 @@ Run integration tests to verify everything works:
 
 ```bash
 # Test all services
-make test
+python3 flumen test
 
 # Test specific tier
-make test-tier0    # PostgreSQL, MinIO
-make test-tier1    # Hive Metastore, Spark
+python3 flumen test --tier 0    # PostgreSQL, MinIO
+python3 flumen test --tier 1    # Hive Metastore, Spark
 ```
 
 ### Create Your First Database
 
 ```bash
 # Open Spark SQL shell
-make shell-spark-sql
+python3 flumen shell-spark-sql
 
 # Create a database
 CREATE DATABASE my_database
@@ -195,10 +197,10 @@ If ports are already in use, update the `.env` file:
 POSTGRES_PORT=5433
 
 # Regenerate configuration
-make config
+python3 flumen config
 
 # Restart services
-make restart
+python3 flumen restart
 ```
 
 ### Services not starting
@@ -238,7 +240,7 @@ To completely remove FlumenData:
 
 ```bash
 # Stop and remove all containers and volumes
-make clean
+python3 flumen clean
 
 # Remove Docker images
 docker rmi flumendata/hive:standalone-metastore-4.1.0
@@ -246,8 +248,8 @@ docker rmi flumendata/spark:4.0.1-health
 
 # Remove cloned directory
 cd ..
-rm -rf flumendata
+rm -rf FlumenData
 ```
 
 !!! warning "Data Loss"
-    The `make clean` command permanently deletes all data stored in Docker volumes. Export any important data before running this command.
+    The `python3 flumen clean` command permanently deletes all data stored in Docker volumes. Export any important data before running this command.

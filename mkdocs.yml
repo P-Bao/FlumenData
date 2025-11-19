@@ -69,7 +69,7 @@ plugins:
           Architecture: Arquitetura
           Configuration: Configuração
           Environment Variables: Variáveis de Ambiente
-          Make Commands: Comandos Make
+          CLI Reference: Referência CLI
           Development: Desenvolvimento
           Testing: Testes
 
@@ -137,6 +137,6 @@ nav:
           - Superset: services/superset.md
   - Configuration:
       - Environment Variables: configuration/environment.md
-      - Make Commands: configuration/commands.md
+      - CLI Reference: configuration/commands.md
   - Development:
       - Testing: development/testing.md

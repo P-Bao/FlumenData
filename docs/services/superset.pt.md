@@ -9,7 +9,7 @@
 
 ## Configuração
 - Templates:
-  - `templates/superset/superset.env.tpl` → `config/superset/superset.env` via `make config-superset`.
+  - `templates/superset/superset.env.tpl` → `config/superset/superset.env` via `python3 flumen config --service superset`.
   - `templates/superset/superset_config.py.tpl` → `config/superset/superset_config.py`.
 - Variáveis principais (definidas em `.env`):
   - `SUPERSET_VERSION` – tag da imagem.
@@ -23,13 +23,13 @@
 
 ## Uso
 ```bash
-make build-superset    # (Opcional) constrói a imagem customizada
-make config-superset   # Renderiza env + config
-make superset-db       # Garante o banco de metadados no PostgreSQL
-make up-tier3          # Sobe Trino + Superset
-make health-superset   # Verifica saúde via HTTP
-make logs-superset     # Segue os logs
-make shell-superset    # Abre bash dentro do container
+python3 flumen rebuild --service superset    # (Opcional) constrói a imagem customizada
+python3 flumen config --service superset   # Renderiza env + config
+python3 flumen superset-db       # Garante o banco de metadados no PostgreSQL
+python3 flumen up --tier 3          # Sobe Trino + Superset
+python3 flumen health --service superset   # Verifica saúde via HTTP
+python3 flumen logs --service superset     # Segue os logs
+python3 flumen shell-superset    # Abre bash dentro do container
 ```
 
 Acesse `http://localhost:${SUPERSET_PORT}` (padrão `http://localhost:8088`).
@@ -38,7 +38,7 @@ Acesse `http://localhost:${SUPERSET_PORT}` (padrão `http://localhost:8088`).
 - Usuário: `admin`
 - Senha: `admin123`
 
-Altere esses valores no `.env` antes de rodar `make config-superset` para não usar os padrões.
+Altere esses valores no `.env` antes de rodar `python3 flumen config --service superset` para não usar os padrões.
 
 ### Conectar o Superset ao Trino
 Crie um novo **Database** no Superset:
@@ -59,6 +59,6 @@ O comando do container executa:
 
 ## Solução de Problemas
 - **Falha imediata no login**: garanta que cookies estejam habilitados e que `SUPERSET_SECRET_KEY` permaneça estável entre reinicializações.
-- **Superset inacessível**: execute `make health-superset` e verifique `docker compose -f docker-compose.tier3.yml logs superset`.
-- **Erros no banco de metadados**: rode `make superset-db` depois que o PostgreSQL estiver saudável para criar o banco `superset` antes de iniciar o container.
-- **Timeout consultando o Trino**: verifique se todos os tiers estão na mesma rede Docker (`make up`) e se a URI SQLAlchemy utiliza o hostname interno `trino`.
+- **Superset inacessível**: execute `python3 flumen health --service superset` e verifique `docker compose -f docker-compose.tier3.yml logs superset`.
+- **Erros no banco de metadados**: rode `python3 flumen superset-db` depois que o PostgreSQL estiver saudável para criar o banco `superset` antes de iniciar o container.
+- **Timeout consultando o Trino**: verifique se todos os tiers estão na mesma rede Docker (`python3 flumen up`) e se a URI SQLAlchemy utiliza o hostname interno `trino`.

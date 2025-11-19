@@ -15,6 +15,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Docker-20.10%2B-157983.svg" alt="Docker">
+  <img src="https://img.shields.io/badge/Python-3.6%2B-3776AB.svg" alt="Python">
   <img src="https://img.shields.io/badge/Spark-4.0.1-FDA931.svg" alt="Spark">
   <img src="https://img.shields.io/badge/Delta%20Lake-4.0.0-20EFFD.svg" alt="Delta Lake">
 </p>
@@ -37,7 +38,8 @@ FlumenData is an **open-source lakehouse platform** that combines the best of da
 - **S3-Compatible Storage**: MinIO for scalable object storage
 - **Hive Metastore**: Industry-standard catalog with 2-level namespace
 - **Distributed Compute**: Apache Spark cluster (1 Master + 2 Workers)
-- **One Command Setup**: `make init` starts the entire platform
+- **Cross-Platform CLI**: Python-based CLI works on Windows, Linux, and macOS
+- **One Command Setup**: Initialize the entire platform instantly
 
 ## 🏗️ Architecture
 
@@ -95,11 +97,68 @@ graph TB
 
 ### Prerequisites
 
+**Required:**
 - Docker 20.10+
 - Docker Compose 2.0+
-- GNU Make
+- Python 3.6+
 - 16 GB RAM minimum (32 GB recommended)
 - 20 GB free disk space
+
+**Installing Python:**
+
+<details>
+<summary><b>Windows</b></summary>
+
+Install Python from Microsoft Store (recommended):
+1. Open **Microsoft Store**
+2. Search for **"Python"**
+3. Install **Python 3.12** (or latest version)
+4. Verify installation:
+   ```powershell
+   python --version
+   ```
+
+Alternative: Download from [python.org](https://www.python.org/downloads/)
+
+</details>
+
+<details>
+<summary><b>Linux</b></summary>
+
+Python is usually pre-installed. Verify:
+```bash
+python3 --version
+```
+
+If not installed:
+```bash
+# Ubuntu/Debian
+sudo apt update && sudo apt install python3
+
+# Fedora/RHEL
+sudo dnf install python3
+
+# Arch
+sudo pacman -S python
+```
+
+</details>
+
+<details>
+<summary><b>macOS</b></summary>
+
+Python is pre-installed. Verify:
+```bash
+python3 --version
+```
+
+To install/update:
+```bash
+# Using Homebrew
+brew install python3
+```
+
+</details>
 
 ### Installation
 
@@ -108,21 +167,26 @@ graph TB
 git clone https://github.com/lucianomauda/FlumenData.git
 cd FlumenData
 
-# 2. Initialize the environment
-make init
+# 2. Make CLI executable (Linux/macOS only)
+chmod +x flumen
 
-# 3. Verify all services are healthy
-make health
+# 3. Initialize the environment
+python3 flumen init
 
-# 4. View environment summary
-make summary
+# 4. Verify all services are healthy
+python3 flumen health
+
+# 5. View environment summary
+python3 flumen summary
 ```
+
+**Windows users:** Use `python flumen` instead of `python3 flumen`
 
 ### Your First Query
 
 ```bash
 # Open Spark SQL shell
-make shell-spark-sql
+python3 flumen shell-spark-sql
 
 # Create a database
 CREATE DATABASE quickstart
@@ -146,16 +210,18 @@ SELECT * FROM quickstart.customers;
 
 ## 📊 Web Interfaces
 
-After running `make init`, access:
+After running `python3 flumen init`, access:
 
 - **Spark Master UI**: http://localhost:8080 - Cluster status and job monitoring
 - **MinIO Console**: http://localhost:9001 - Object storage management
   - Username: `minioadmin`
   - Password: `minioadmin123`
   - Buckets: `lakehouse` (Delta tables), `storage` (ingest-ready files)
-- **JupyterLab**: http://localhost:8888 - Data exploration notebooks (`make token-jupyterlab` to fetch the access token)
+- **JupyterLab**: http://localhost:8888 - Data exploration notebooks
+  - Get token: `python3 flumen token-jupyterlab`
 - **Trino Console**: http://localhost:${TRINO_PORT} - Query history and thread pools
-- **Superset**: http://localhost:${SUPERSET_PORT} - BI dashboards (login: `admin` / `admin123`)
+- **Superset**: http://localhost:${SUPERSET_PORT} - BI dashboards
+  - Login: `admin` / `admin123`
 
 ## 📖 Documentation
 
@@ -172,47 +238,76 @@ Key documentation pages:
 - [Apache Spark](docs/services/spark.md)
 - [Apache Superset](docs/services/superset.md)
 - [Configuration](docs/configuration/environment.md)
-- [Make Commands Reference](docs/configuration/commands.md)
 
 ## 🛠️ Common Commands
 
+**Get Help:**
 ```bash
-# Service Management
-make init              # Complete initialization
-make up                # Start all services
-make up-tier2          # Start analytics & ML services
-make up-tier3          # Start orchestration & BI services
-make build-superset    # Build Superset image with drivers
-make down              # Stop all services
-make restart           # Restart all services
+python3 flumen           # Show welcome message
+python3 flumen --help    # List all commands
+```
 
-# Health Checks
-make health            # Check all services
-make health-tier0      # Check foundation services
-make health-tier1      # Check data platform services
-make health-tier2      # Check analytics & ML services
-make health-tier3      # Check orchestration & BI services
+**Service Management:**
+```bash
+python3 flumen init              # Complete initialization
+python3 flumen up                # Start all services
+python3 flumen up --tier 2       # Start analytics & ML services
+python3 flumen up --tier 3       # Start orchestration & BI services
+python3 flumen down              # Stop all services
+python3 flumen restart           # Restart all services
+python3 flumen ps                # Show container status
+```
 
-# Testing
-make test              # Run all tests
-make test-tier0        # Test Tier 0 services
-make test-tier1        # Test Tier 1 services
-make test-tier2        # Test Tier 2 services
-make test-tier3        # Test Tier 3 services
+**Health Checks:**
+```bash
+python3 flumen health            # Check all services
+python3 flumen health --tier 0   # Check foundation services
+python3 flumen health --tier 1   # Check data platform services
+python3 flumen health --tier 2   # Check analytics & ML services
+python3 flumen health --tier 3   # Check orchestration & BI services
+python3 flumen verify-hive       # Verify Hive Metastore setup
+```
 
-# Interactive Shells
-make shell-spark       # Spark Scala shell
-make shell-pyspark     # PySpark Python shell
-make shell-spark-sql   # Spark SQL shell
-make shell-postgres    # PostgreSQL shell
-make sql-trino         # Trino CLI shell
-make mc                # MinIO client
+**Testing:**
+```bash
+python3 flumen test              # Run all tests
+python3 flumen test --tier 0     # Test Tier 0 services
+python3 flumen test --tier 1     # Test Tier 1 services
+python3 flumen test --integration # Run integration test
+```
 
-# Maintenance
-make logs              # View all logs
-make summary           # Environment overview
-make reset             # Reset and reinitialize
-make clean             # Remove everything (DESTRUCTIVE)
+**Interactive Shells:**
+```bash
+python3 flumen shell-spark       # Spark Scala shell
+python3 flumen shell-pyspark     # PySpark Python shell
+python3 flumen shell-spark-sql   # Spark SQL shell
+python3 flumen shell-postgres    # PostgreSQL shell
+python3 flumen shell-mc          # MinIO client
+```
+
+**Service Helpers:**
+```bash
+python3 flumen token-jupyterlab  # Get JupyterLab token
+python3 flumen superset-db       # Initialize Superset database
+```
+
+**Maintenance:**
+```bash
+python3 flumen logs              # View all logs
+python3 flumen summary           # Environment overview
+python3 flumen config            # Regenerate all configs
+python3 flumen clean             # Remove everything (DESTRUCTIVE)
+python3 flumen rebuild           # Rebuild custom Docker images
+python3 flumen prune             # Clean up Docker resources
+```
+
+**Optional: Using Make**
+
+For convenience, you can also use `make` commands:
+```bash
+make init       # Calls: python3 flumen init
+make health     # Calls: python3 flumen health
+make up         # Calls: python3 flumen up
 ```
 
 ## 🎨 Brand System
@@ -248,20 +343,27 @@ make clean             # Remove everything (DESTRUCTIVE)
 
 ```
 FlumenData/
+├── flumen                      # Python CLI entry point
+├── Makefile                    # Optional Make wrapper
+├── scripts/                    # Python CLI package
+│   └── flumendata/
+│       ├── __init__.py
+│       ├── utils.py           # Core utilities
+│       ├── config.py          # Configuration generation
+│       ├── docker_ops.py      # Docker operations
+│       ├── health.py          # Health checks
+│       ├── init.py            # Initialization
+│       ├── shell.py           # Shell access
+│       ├── testing.py         # Testing commands
+│       ├── cleanup.py         # Cleanup commands
+│       ├── verify.py          # Verification
+│       └── services.py        # Service helpers
 ├── config/                     # Generated configuration (DO NOT EDIT)
 ├── docker/                     # Custom Dockerfiles
 │   ├── hive.Dockerfile        # Hive Metastore + PostgreSQL JDBC
 │   ├── spark.Dockerfile       # Spark with health checks
 │   └── superset.Dockerfile    # Superset with psycopg2 + sqlalchemy-trino
 ├── docs/                       # MkDocs Material documentation (EN + PT)
-├── makefiles/                  # Service-specific Makefiles
-│   ├── postgres.mk
-│   ├── minio.mk
-│   ├── hive.mk
-│   ├── spark.mk
-│   ├── jupyterlab.mk
-│   ├── trino.mk
-│   └── superset.mk
 ├── templates/                  # Configuration templates
 │   ├── hive/
 │   ├── spark/
@@ -274,9 +376,96 @@ FlumenData/
 ├── docker-compose.tier1.yml    # Data platform services
 ├── docker-compose.tier2.yml    # Analytics & development services
 ├── docker-compose.tier3.yml    # Orchestration & BI services
-├── Makefile                    # Main orchestration
 ├── mkdocs.yml                 # Documentation configuration
 └── README.md                   # This file
+```
+
+## 💾 Data Storage
+
+FlumenData uses **configurable bind mounts** for user data while keeping everything else in Docker volumes.
+
+### Data Directory Structure
+
+Only **2 directories** are exposed as bind mounts:
+
+```
+${DATA_DIR}/                  # Default: ../flumendata-data
+├── minio/                    # MinIO lakehouse storage
+│   ├── lakehouse/           # Delta Lake tables
+│   └── storage/             # Staging bucket for raw files
+└── notebooks/               # JupyterLab notebooks (YOUR WORK)
+    ├── _examples/           # Read-only examples
+    ├── 01_analysis.ipynb   # Your notebooks
+    └── .git/               # Optional: version control
+```
+
+Everything else (PostgreSQL metadata, Spark logs) stays in Docker volumes.
+
+### Configuration
+
+**Default Location:** `DATA_DIR=../flumendata-data` (sibling to FlumenData repo)
+
+Creates this structure:
+```
+your-workspace/
+├── FlumenData/          # This repository
+└── flumendata-data/     # Your data (can be separate git repo)
+```
+
+**Change Location** - Edit `.env`:
+
+```bash
+# Relative paths (RECOMMENDED - portable)
+DATA_DIR=../flumendata-data    # Sibling directory (default)
+DATA_DIR=./data                # Inside project
+DATA_DIR=../../my-data         # Parent directory
+
+# Absolute paths (machine-specific)
+DATA_DIR=/mnt/d/data-projects  # Windows D: drive (WSL)
+DATA_DIR=~/flumendata-data     # Linux home directory
+DATA_DIR=/home/user/flumen     # Linux absolute path
+```
+
+### Version Control Your Notebooks
+
+```bash
+cd /path/to/data-dir/notebooks
+git init
+git add .
+git commit -m "Initial analysis notebooks"
+git remote add origin https://github.com/yourusername/analysis.git
+git push
+```
+
+**Recommended .gitignore:**
+```gitignore
+.ipynb_checkpoints/
+_examples/
+__pycache__/
+*.csv
+*.parquet
+*.xlsx
+```
+
+### What to Backup
+
+**Critical:**
+- `${DATA_DIR}/minio/` - Your Delta Lake tables (can be TBs!)
+- `${DATA_DIR}/notebooks/` - Your analysis work (use git!)
+
+**Handled by Docker volumes:**
+- PostgreSQL metadata
+- Spark logs and caches
+- Superset dashboards
+
+**Backup commands:**
+```bash
+# Tar backup
+tar -czf flumendata-backup-$(date +%Y%m%d).tar.gz /path/to/data-dir
+
+# Or just use git for notebooks
+cd /path/to/data-dir/notebooks
+git push
 ```
 
 ## 🎓 Use Cases
@@ -295,11 +484,12 @@ FlumenData is perfect for:
 - ✅ **Tier 1 – Data Platform**: Spark, Hive Metastore, Delta Lake
 - ✅ **Tier 2 – Analytics & Development**: JupyterLab
 - ✅ **Tier 3 – SQL & BI**: Trino, Superset
+- ✅ **Cross-Platform CLI**: Python CLI for Windows, Linux, macOS
 
 Key guidelines:
 - All code and comments in English
 - Update both EN and PT documentation
-- Run `make test` before submitting
+- Run `python3 flumen test` before submitting
 - Follow existing code structure
 
 ## 📝 Conventions
@@ -311,38 +501,95 @@ Key guidelines:
 
 ## 🐛 Troubleshooting
 
-### Services not starting
+### Common Issues
+
+#### Services not starting
 
 ```bash
 # Check Docker resources
 docker stats
 
 # View logs
-make logs
+python3 flumen logs
 
 # Verify health
-make health
+python3 flumen health
+
+# Check specific service
+python3 flumen logs --service spark-master
 ```
 
-### Configuration issues
+#### Configuration issues
 
 ```bash
 # Regenerate all configs
-make config
+python3 flumen config
 
 # Restart services
-make restart
+python3 flumen restart
 ```
 
-### Data issues
+#### Port conflicts
 
 ```bash
-# Complete reset (keeps data)
-make reset
+# Check what's using a port
+sudo lsof -i :9000
 
-# Nuclear option (deletes everything)
-make clean
+# Or change port in .env
+MINIO_PORT_API=9010
 ```
+
+### Windows/WSL Specific
+
+#### Docker credentials error
+
+```bash
+# Reset Docker config
+cp ~/.docker/config.json ~/.docker/config.json.backup
+echo '{}' > ~/.docker/config.json
+```
+
+#### Bind mount errors after restart
+
+1. Stop all containers: `python3 flumen down`
+2. Restart Docker Desktop (right-click icon → Quit → Start)
+3. Or restart WSL: `wsl --shutdown` (from PowerShell)
+4. Reinitialize: `python3 flumen init`
+
+#### Slow performance on Windows drives
+
+Use native WSL filesystem for better performance:
+
+```bash
+# In .env - use WSL native path
+DATA_DIR=/home/username/flumendata-data
+
+# Access from Windows Explorer
+\\wsl$\Ubuntu\home\username\flumendata-data
+```
+
+### Complete Reset
+
+If everything is broken:
+
+```bash
+python3 flumen down
+docker system prune -af  # WARNING: Removes all Docker data
+rm -rf /path/to/data-dir  # Your DATA_DIR
+python3 flumen init
+```
+
+### Getting Help
+
+If issues persist:
+1. Check Docker Desktop is running
+2. Verify Python version: `python3 --version`
+3. Check disk space: `df -h`
+4. Review logs: `python3 flumen logs`
+5. Open an issue with:
+   - Output of `python3 flumen --version`
+   - Output of `docker version`
+   - Your platform (Windows/Linux/macOS)
 
 For more troubleshooting tips, see the [documentation](docs/getting-started/installation.md#troubleshooting-installation).
 

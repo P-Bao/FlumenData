@@ -49,22 +49,22 @@ Após alterar `.env`, gere tudo novamente:
 
 ```bash
 # Gerar todos os arquivos
-make config
+python3 flumen config
 
 # Gerar serviços específicos
-make config-hive
-make config-spark
-make config-minio
-make config-jupyterlab
-make config-trino
-make config-superset
+python3 flumen config --service hive
+python3 flumen config --service spark
+python3 flumen config --service minio
+python3 flumen config --service jupyterlab
+python3 flumen config --service trino
+python3 flumen config --service superset
 
 # Reiniciar para aplicar
-make restart
+python3 flumen restart
 ```
 
 !!! warning "Nunca edite os arquivos gerados"
-    Tudo em `config/` é sobrescrito. Sempre edite os templates dentro de `templates/` e execute `make config`.
+    Tudo em `config/` é sobrescrito. Sempre edite os templates dentro de `templates/` e execute `python3 flumen config`.
 
 ## Variáveis Principais
 
@@ -81,7 +81,7 @@ POSTGRES_PORT=5432             # Porta exposta
 **Usado por:**
 - Contêiner PostgreSQL
 - Hive Metastore (conexão JDBC)
-- Alvos Make que acessam o banco
+- Comandos CLI que acessam o banco
 
 **Exemplos:**
 ```bash
@@ -90,8 +90,8 @@ docker exec -it flumen_postgres psql -U ${POSTGRES_USER} -d ${POSTGRES_DB}
 
 # Alterar senha (exige restart)
 POSTGRES_PASSWORD=nova_senha_segura
-make config
-make restart
+python3 flumen config
+python3 flumen restart
 ```
 
 ### MinIO
@@ -121,8 +121,8 @@ MINIO_STORAGE_BUCKET=storage         # Bucket de staging
 # Trocar credenciais
 MINIO_ROOT_USER=admin
 MINIO_ROOT_PASSWORD=SenhaMuitoForte123
-make config
-make restart
+python3 flumen config
+python3 flumen restart
 
 # Criar buckets adicionais
 docker exec flumen_minio mc mb /data/bronze
@@ -144,7 +144,7 @@ HIVE_METASTORE_URI=thrift://hive-metastore:9083
 docker exec flumen_spark_master nc -zv hive-metastore 9083
 
 # Inspecionar logs
-make logs-hive
+python3 flumen logs --service hive-metastore
 ```
 
 ### Spark
@@ -166,8 +166,8 @@ SPARK_WORKER_MEMORY=2g            # Memória por worker
 # Aumentar recursos
 SPARK_WORKER_CORES=4
 SPARK_WORKER_MEMORY=4g
-make config-spark
-make restart
+python3 flumen config --service spark
+python3 flumen restart
 
 # Abrir UI
 open http://localhost:8080
@@ -190,11 +190,11 @@ AWS_SDK_BUNDLE_VERSION=1.12.367
 **Mudando versões:**
 ```bash
 DELTA_VERSION=4.1.0
-make config-spark
+python3 flumen config --service spark
 
 # Limpar cache Ivy para baixar novos JARs
 docker volume rm flumen_spark_ivy
-make restart
+python3 flumen restart
 ```
 
 !!! warning "Compatibilidade de versões"
@@ -218,11 +218,11 @@ TRINO_ENVIRONMENT=lakehouse # Valor gravado em node.properties
 ```bash
 # Evitar conflito de porta
 TRINO_PORT=9090
-make up-tier3
+python3 flumen up --tier 3
 
 # Fixar outra versão
 TRINO_VERSION=448
-make up-tier3
+python3 flumen up --tier 3
 ```
 
 ### Superset
@@ -250,9 +250,9 @@ SUPERSET_ADMIN_LAST_NAME=Admin
 ```bash
 # Alterar porta da UI
 SUPERSET_PORT=8090
-make up-tier3
+python3 flumen up --tier 3
 
 # Mudar a senha padrão antes de gerar configs
 SUPERSET_ADMIN_PASSWORD=SenhaSuperForte
-make config-superset
+python3 flumen config --service superset
 ```

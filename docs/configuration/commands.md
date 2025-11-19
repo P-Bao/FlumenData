@@ -1,69 +1,123 @@
-# Make Commands Reference
+# CLI Reference
 
-FlumenData provides a comprehensive set of Make commands for managing the lakehouse environment.
+FlumenData provides a comprehensive Python-based CLI for managing the lakehouse environment.
 
 ## Quick Reference
 
 ```bash
-make init          # Complete initialization (recommended for first-time setup)
-make health        # Check all services health
-make ps            # Show running containers
-make summary       # Display environment overview
-make logs          # View logs for all services
-make restart       # Restart all services
-make reset         # Complete reset and reinitialize
-make clean         # Stop and remove everything (DESTRUCTIVE)
+python3 flumen init              # Complete initialization (recommended for first-time setup)
+python3 flumen health            # Check all services health
+python3 flumen ps                # Show running containers
+python3 flumen summary           # Display environment overview
+python3 flumen logs              # View logs for all services
+python3 flumen restart           # Restart all services
+python3 flumen clean             # Stop and remove everything (DESTRUCTIVE)
+```
+
+## Installation & Prerequisites
+
+FlumenData CLI requires:
+- **Python 3.6+** (pre-installed on Linux/macOS, install via Microsoft Store on Windows)
+- **Docker** 20.10+
+- **Docker Compose** 2.0+
+
+## Command Structure
+
+```bash
+python3 flumen <command> [options]
+
+# Or use the optional Makefile wrapper:
+make <command>
 ```
 
 ## Initialization Commands
 
-### `make init`
+### `python3 flumen init`
 Complete environment initialization - recommended for first-time setup.
 
 **What it does:**
-1. Generates all configuration files
-2. Builds custom Docker images
-3. Starts Tier 0 services (PostgreSQL, MinIO)
-4. Initializes MinIO buckets
-5. Starts Tier 1 services (Hive Metastore, Spark)
-6. Starts Tier 2 services (JupyterLab)
-7. Starts Tier 3 services (Trino, Superset)
-8. Runs health checks
-9. Displays summary
+1. Loads environment variables from `.env`
+2. Initializes data directories
+3. Generates all configuration files
+4. Starts Tier 0 services (PostgreSQL, MinIO)
+5. Checks Tier 0 health and initializes MinIO buckets
+6. Starts Tier 1 services (Hive Metastore, Spark)
+7. Checks Tier 1 health and initializes Hive
+8. Displays environment summary
 
 **Usage:**
 ```bash
-make init
+python3 flumen init
+
+# Skip banner display
+python3 flumen init --skip-banner
 ```
 
 **Output:**
 ```
-[config] Generating all configuration files...
-[build] Building custom images...
-[tier0] Starting foundation services...
-[tier0] All services healthy
-[minio] Initializing buckets...
-[tier1] Starting data platform...
-[tier1] All services healthy
-[summary] Environment ready!
+Starting complete FlumenData initialization...
+
+Step 1/7: Initializing data directories
+✓ Created /path/to/data/minio/lakehouse
+✓ Created /path/to/data/notebooks/_examples
+
+Step 2/7: Generating configurations
+✓ Generated MinIO configuration
+✓ Generated Hive configuration
+✓ Generated Spark configuration
+
+Step 3/7: Starting Tier 0 services
+✓ PostgreSQL started
+✓ MinIO started
+
+Step 4/7: Initializing Tier 0
+✓ PostgreSQL is healthy
+✓ MinIO is healthy
+✓ Created lakehouse bucket
+
+Step 5/7: Starting Tier 1 services
+✓ Hive Metastore started
+✓ Spark Master started
+✓ Spark Workers started
+
+Step 6/7: Checking Tier 1 health
+✓ Hive Metastore is healthy
+✓ Spark Master is healthy
+
+Step 7/7: Environment Summary
+[Summary display...]
+
+✓ FlumenData initialized successfully!
+
+Next steps:
+  • Start Tier 2: python3 flumen up --tier 2
+  • Start Tier 3: python3 flumen up --tier 3
+  • Check health: python3 flumen health
 ```
 
-### `make config`
+### `python3 flumen init-dirs`
+Initialize data directories only (useful for first-time setup or data directory recreation).
+
+**Usage:**
+```bash
+python3 flumen init-dirs
+```
+
+### `python3 flumen config`
 Generate all configuration files from templates.
 
 **Usage:**
 ```bash
 # Generate all configs
-make config
+python3 flumen config
 
 # Generate specific service config
-make config-postgres
-make config-minio
-make config-hive
-make config-spark
-make config-jupyterlab
-make config-trino
-make config-superset
+python3 flumen config --service minio
+python3 flumen config --service hive
+python3 flumen config --service spark
+python3 flumen config --service jupyterlab
+python3 flumen config --service trino
+python3 flumen config --service superset
 ```
 
 **When to use:**
@@ -75,152 +129,101 @@ make config-superset
 
 ### Starting Services
 
-#### `make up`
+#### `python3 flumen up`
 Start all services (Tiers 0 through 3).
 
 ```bash
-make up
+python3 flumen up
 ```
 
-#### `make up-tier0`
-Start only Tier 0 foundation services.
+#### `python3 flumen up --tier <N>`
+Start specific tier services.
 
 ```bash
-make up-tier0  # PostgreSQL, MinIO
+python3 flumen up --tier 0  # PostgreSQL, MinIO
+python3 flumen up --tier 1  # Hive Metastore, Spark cluster
+python3 flumen up --tier 2  # JupyterLab
+python3 flumen up --tier 3  # Trino, Superset
 ```
 
-#### `make up-tier1`
-Start only Tier 1 data platform services.
+#### `python3 flumen up --services <service1> <service2>`
+Start specific services.
 
 ```bash
-make up-tier1  # Hive Metastore, Spark cluster
-```
-
-#### `make up-tier2`
-Start analytics & development services.
-
-```bash
-make up-tier2  # JupyterLab
-```
-
-#### `make up-tier3`
-Start SQL & BI services.
-
-```bash
-make up-tier3  # Trino + Superset
+python3 flumen up --services spark-master spark-worker1
 ```
 
 ### Stopping Services
 
-#### `make down`
-Stop all services (containers remain, volumes preserved).
+#### `python3 flumen down`
+Stop all services (containers removed, volumes preserved).
 
 ```bash
-make down
-```
-
-#### `make down-tier0`
-Stop only Tier 0 services.
-
-```bash
-make down-tier0
-```
-
-#### `make down-tier1`
-Stop only Tier 1 services.
-
-```bash
-make down-tier1
+python3 flumen down
 ```
 
 ### Restarting Services
 
-#### `make restart`
+#### `python3 flumen restart`
 Restart all services.
 
 ```bash
-make restart
+python3 flumen restart
 ```
 
 **Equivalent to:**
 ```bash
-make down
-make up
+python3 flumen down && python3 flumen up
 ```
 
 ## Health Checks
 
-### `make health`
+### `python3 flumen health`
 Check health status of all services.
 
 **Usage:**
 ```bash
-make health
+# Check all services
+python3 flumen health
+
+# Check specific tier
+python3 flumen health --tier 0
+python3 flumen health --tier 1
+python3 flumen health --tier 2
+python3 flumen health --tier 3
 ```
 
 **Output:**
 ```
+=== Tier 0 - Foundation Services ===
 ✓ postgres is healthy
 ✓ minio is healthy
+
+=== Tier 1 - Data Platform ===
 ✓ hive-metastore is healthy
 ✓ spark-master is healthy
 ✓ spark-worker1 is healthy
 ✓ spark-worker2 is healthy
 ```
 
-### Tier-Specific Health Checks
-
-```bash
-make health-tier0   # PostgreSQL, MinIO
-make health-tier1   # Hive Metastore, Spark cluster
-make health-tier2   # JupyterLab
-make health-tier3   # Trino + Superset
-```
-
-### Individual Service Health
-
-```bash
-make health-postgres
-make health-minio
-make health-hive
-make health-spark-master
-make health-spark-workers
-make health-jupyterlab
-make health-trino
-make health-superset
-```
-
-## Superset Commands
-
-### `make build-superset`
-Build the custom Superset image (includes `psycopg2-binary` + `sqlalchemy-trino`). Compose will trigger a build automatically, but running this explicitly is useful after bumping `SUPERSET_VERSION` or changing `docker/superset.Dockerfile`.
-
-```bash
-make build-superset
-```
-
-### `make logs-superset`
-Tail only the Superset container logs.
-
-```bash
-make logs-superset
-```
-
-### `make shell-superset`
-Open an interactive shell inside the Superset container (handy for debugging or running `superset` CLI commands).
-
-```bash
-make shell-superset
-```
-
 ## Testing Commands
 
-### `make test`
+### `python3 flumen test`
 Run all integration tests.
 
 **Usage:**
 ```bash
-make test
+# Test all services
+python3 flumen test
+
+# Test specific tier
+python3 flumen test --tier 0
+python3 flumen test --tier 1
+python3 flumen test --tier 2
+python3 flumen test --tier 3
+
+# Run integration test
+python3 flumen test --integration
 ```
 
 **What it tests:**
@@ -231,45 +234,14 @@ make test
 - JupyterLab: HTTP availability probe
 - Trino: CLI query against the coordinator
 
-### Tier-Specific Tests
-
-```bash
-make test-tier0     # Test foundation services
-make test-tier1     # Test data platform services
-make test-tier2     # Test analytics & automation services
-make test-tier3     # Test SQL & BI services
-```
-
-### Individual Service Tests
-
-```bash
-make test-postgres
-make test-minio
-make test-hive
-make test-spark
-make test-jupyterlab
-make test-trino
-```
-
-### Persistence Tests
-
-Verify data survives container restarts:
-
-```bash
-make persist-postgres
-make persist-minio
-make persist-spark
-make persist-jupyterlab
-```
-
 ## Verification Commands
 
-### `make verify-hive`
+### `python3 flumen verify-hive`
 Display Hive Metastore databases and configuration.
 
 **Usage:**
 ```bash
-make verify-hive
+python3 flumen verify-hive
 ```
 
 **Output:**
@@ -285,73 +257,54 @@ Warehouse: s3a://lakehouse/warehouse
 Backend: PostgreSQL
 ```
 
-### `make summary`
+### `python3 flumen summary`
 Display comprehensive environment summary.
 
 **Usage:**
 ```bash
-make summary
+python3 flumen summary
 ```
 
 **Output includes:**
 - FlumenData version
 - All services status
 - Ports and URLs
-- Volume sizes
+- Volume information
 - Configuration summary
 
 ## Logging Commands
 
-### `make logs`
-View logs for all services (follows/streams).
+### `python3 flumen logs`
+View logs for services.
 
 **Usage:**
 ```bash
-make logs           # All services
-make logs-tier0     # Tier 0 services
-make logs-tier1     # Tier 1 services
-make logs-tier2     # Tier 2 services
-make logs-tier3     # Tier 3 services
-```
+# All services (follow mode)
+python3 flumen logs
 
-**Options:**
-```bash
-# View last 100 lines (no follow)
-docker-compose -f docker-compose.tier0.yml logs --tail=100
+# Specific tier
+python3 flumen logs --tier 0
+python3 flumen logs --tier 1
 
-# View specific time range
-docker-compose -f docker-compose.tier0.yml logs --since=1h
-```
+# Specific service
+python3 flumen logs --service spark-master
+python3 flumen logs --service hive-metastore
 
-### Individual Service Logs
-
-```bash
-make logs-postgres
-make logs-minio
-make logs-hive
-make logs-spark
-make logs-jupyterlab
-make logs-trino
-make logs-superset
-```
-
-**Equivalent to:**
-```bash
-docker logs -f flumen_postgres
-docker logs -f flumen_hive_metastore
-docker logs -f flumen_spark_master
+# No follow (show recent logs and exit)
+python3 flumen logs --no-follow
+python3 flumen logs --service postgres --no-follow
 ```
 
 ## Interactive Shells
 
 ### Database Shells
 
-#### `make shell-postgres`
+#### `python3 flumen shell-postgres`
 Open PostgreSQL interactive shell.
 
 **Usage:**
 ```bash
-make shell-postgres
+python3 flumen shell-postgres
 ```
 
 **Example queries:**
@@ -368,12 +321,12 @@ SELECT * FROM "DBS";
 
 ### Spark Shells
 
-#### `make shell-spark`
+#### `python3 flumen shell-spark`
 Open Spark interactive Scala shell.
 
 **Usage:**
 ```bash
-make shell-spark
+python3 flumen shell-spark
 ```
 
 **Example:**
@@ -382,12 +335,12 @@ val df = spark.read.format("delta").table("quickstart.customers")
 df.show()
 ```
 
-#### `make shell-pyspark`
+#### `python3 flumen shell-pyspark`
 Open PySpark interactive Python shell.
 
 **Usage:**
 ```bash
-make shell-pyspark
+python3 flumen shell-pyspark
 ```
 
 **Example:**
@@ -396,12 +349,12 @@ df = spark.read.format("delta").table("quickstart.customers")
 df.show()
 ```
 
-#### `make shell-spark-sql`
+#### `python3 flumen shell-spark-sql`
 Open Spark SQL interactive shell.
 
 **Usage:**
 ```bash
-make shell-spark-sql
+python3 flumen shell-spark-sql
 ```
 
 **Example:**
@@ -411,30 +364,14 @@ USE quickstart;
 SELECT * FROM customers LIMIT 10;
 ```
 
-### Trino CLI
-
-#### `make sql-trino`
-Open the Trino CLI connected to the coordinator.
-
-**Usage:**
-```bash
-make sql-trino
-```
-
-**Example:**
-```sql
-SHOW CATALOGS;
-SHOW SCHEMAS FROM hive;
-```
-
 ### MinIO Client
 
-#### `make mc`
+#### `python3 flumen shell-mc`
 Open MinIO client (mc) for object storage operations.
 
 **Usage:**
 ```bash
-make mc
+python3 flumen shell-mc
 
 # List buckets
 mc ls local
@@ -449,62 +386,108 @@ mc cp local/lakehouse/file.parquet /tmp/
 mc mb local/bronze
 ```
 
-## Maintenance Commands
+## Service-Specific Commands
 
-### `make reset`
-Complete environment reset and reinitialization.
-
-**What it does:**
-1. Stops all services
-2. Removes containers
-3. Keeps volumes (data preserved)
-4. Runs `make init` to restart everything
+### `python3 flumen token-jupyterlab`
+Get JupyterLab access token.
 
 **Usage:**
 ```bash
-make reset
+python3 flumen token-jupyterlab
 ```
 
-**When to use:**
-- After major configuration changes
-- When services are in inconsistent state
-- To apply Docker Compose changes
+**Output:**
+```
+JupyterLab Access Token:
+http://localhost:8888/?token=abc123def456...
+```
 
-!!! tip "Data Preserved"
-    The `reset` command preserves all data in volumes. It's safe to use for applying configuration changes.
-
-### `make clean`
-Complete cleanup - removes everything including data.
-
-**What it does:**
-1. Stops all services
-2. Removes all containers
-3. Removes all volumes (data deleted)
-4. Removes networks
-5. Removes generated configuration files
+### `python3 flumen superset-db`
+Initialize Superset database.
 
 **Usage:**
 ```bash
-make clean
+python3 flumen superset-db
+```
+
+## Cleanup & Maintenance Commands
+
+### `python3 flumen cleanup`
+Cleanup test data from storage.
+
+**Usage:**
+```bash
+# Cleanup all tiers
+python3 flumen cleanup
+
+# Cleanup specific tier
+python3 flumen cleanup --tier 0
+python3 flumen cleanup --tier 1
+python3 flumen cleanup --tier 2
+```
+
+### `python3 flumen clean`
+Complete environment cleanup - stops services and removes all data.
+
+**What it does:**
+1. Prompts for confirmation
+2. Stops all services
+3. Removes all containers
+4. Removes all volumes (data deleted)
+5. Removes networks
+
+**Usage:**
+```bash
+# Interactive prompt
+python3 flumen clean
+
+# Force without confirmation
+python3 flumen clean --force
 ```
 
 !!! danger "Data Loss"
-    This command permanently deletes all data. Only use when you want to start completely fresh.
+    This command permanently deletes all data stored in Docker volumes. Export any important data before running this command.
 
-**Confirmation prompt:**
+### `python3 flumen rebuild`
+Rebuild all custom Docker images.
+
+**Usage:**
 ```bash
-make clean
-# WARNING: This will delete all data. Are you sure? [y/N]
+python3 flumen rebuild
 ```
 
-## Docker Commands
+**What it rebuilds:**
+- Hive Metastore image
+- Spark image (with Delta Lake)
+- Superset image (with Trino support)
 
-### `make ps`
+### `python3 flumen prune`
+Prune unused Docker resources.
+
+**Usage:**
+```bash
+python3 flumen prune
+```
+
+**What it removes:**
+- Stopped containers
+- Unused networks
+- Dangling images
+- Build cache
+
+## Container Status
+
+### `python3 flumen ps`
 Show running containers with status.
 
 **Usage:**
 ```bash
-make ps
+python3 flumen ps
+```
+
+**Alias:**
+```bash
+python3 flumen status
 ```
 
 **Output:**
@@ -516,65 +499,37 @@ flumen_hive_metastore   healthy         0.0.0.0:9083->9083/tcp
 flumen_spark_master     healthy         0.0.0.0:7077,8080->7077,8080/tcp
 ```
 
-### Build Commands
-
-```bash
-# Build all custom images
-make build
-
-# Build specific image
-docker build -f docker/hive.Dockerfile -t flumendata/hive:standalone-metastore-4.1.0 .
-docker build -f docker/spark.Dockerfile -t flumendata/spark:4.0.1-health .
-```
-
-## Utility Commands
-
-### `make help`
-Display all available commands with descriptions.
-
-**Usage:**
-```bash
-make help
-```
-
-### Check Docker Resources
-
-```bash
-# View Docker disk usage
-docker system df
-
-# View detailed volume information
-docker volume ls
-docker volume inspect flumen_postgres_data
-```
-
-### Cleanup Unused Resources
-
-```bash
-# Remove unused images
-docker image prune
-
-# Remove unused volumes (careful!)
-docker volume prune
-
-# Complete system cleanup (very careful!)
-docker system prune -a --volumes
-```
-
 ## Command Cheat Sheet
 
 | Task | Command |
 |------|---------|
-| First-time setup | `make init` |
-| Check everything | `make health` |
-| View logs | `make logs` |
-| Restart after config change | `make config && make restart` |
-| Run tests | `make test` |
-| Open Spark SQL | `make shell-spark-sql` |
-| Open PySpark | `make shell-pyspark` |
-| View environment | `make summary` |
-| Clean start | `make reset` |
-| Nuclear option | `make clean` |
+| First-time setup | `python3 flumen init` |
+| Check everything | `python3 flumen health` |
+| View logs | `python3 flumen logs --service spark-master` |
+| Restart after config change | `python3 flumen config && python3 flumen restart` |
+| Run tests | `python3 flumen test` |
+| Open Spark SQL | `python3 flumen shell-spark-sql` |
+| Open PySpark | `python3 flumen shell-pyspark` |
+| View environment | `python3 flumen summary` |
+| Complete cleanup | `python3 flumen clean` |
+
+## Using the Makefile Wrapper
+
+For convenience, all commands have Makefile aliases:
+
+```bash
+# These are equivalent:
+python3 flumen init
+make init
+
+python3 flumen health
+make health
+
+python3 flumen up --tier 0
+make up-tier0
+```
+
+The Makefile simply delegates to the Python CLI, so you can use whichever you prefer.
 
 ## Advanced Usage
 
@@ -582,27 +537,56 @@ docker system prune -a --volumes
 
 ```bash
 # Typical workflow after changing .env
-make config && make restart && make health
+python3 flumen config && python3 flumen restart && python3 flumen health
 ```
 
 ### Conditional Execution
 
 ```bash
 # Only restart if config succeeds
-make config && make restart || echo "Config failed!"
+python3 flumen config && python3 flumen restart || echo "Config failed!"
 ```
 
-### Debugging
+### Cross-Platform Compatibility
+
+The Python CLI works identically on:
+- **Linux**: Native Python 3
+- **macOS**: Native Python 3
+- **Windows**: Python 3 from Microsoft Store or python.org
+- **WSL2**: Native Python 3
+
+No platform-specific workarounds needed!
+
+## Getting Help
+
+### `python3 flumen --help`
+Show general help and all available commands.
 
 ```bash
-# Verbose output
-make logs | grep ERROR
+python3 flumen --help
+```
 
-# Check specific service
-docker inspect flumen_spark_master
+### `python3 flumen <command> --help`
+Show help for specific command.
 
-# Execute command in container
-docker exec flumen_spark_master /opt/spark/bin/spark-submit --version
+```bash
+python3 flumen up --help
+python3 flumen test --help
+python3 flumen logs --help
+```
+
+### `python3 flumen --version`
+Show FlumenData version.
+
+```bash
+python3 flumen --version
+```
+
+### No Command (Welcome Message)
+Running `python3 flumen` without a command shows a friendly welcome message with quick start guide.
+
+```bash
+python3 flumen
 ```
 
 ## Next Steps

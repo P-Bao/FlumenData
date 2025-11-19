@@ -12,19 +12,19 @@
 - Arquivos estáticos: usando defaults do container (sem arquivo customizado em `/config/postgres` neste tier).
 
 ## Como é gerado
-Config é criada via **Makefile**; não edite arquivos manualmente.
-- Alvo: `make config-postgres` (sem alterações, usa defaults).
+Config é criada via **CLI Python**; não edite arquivos manualmente.
+- Comando: `python3 flumen config --service postgres` (sem alterações, usa defaults).
 
 ## Validação
 ```bash
 # Aguardar saúde
-make health-postgres
+python3 flumen health --service postgres
 
 # Smoke test (criar tabela, inserir, selecionar)
-make test-postgres
+python3 flumen test --service postgres
 
 # Persistência (reiniciar e verificar linhas)
-make persist-postgres
+python3 flumen test --service postgres --persistence
 ```
 
 ## Endpoints úteis

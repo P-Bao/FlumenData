@@ -7,7 +7,7 @@ This guide will walk you through creating your first Delta Lake table and runnin
 Complete the [Installation](installation.md) guide and verify all services are running:
 
 ```bash
-make health
+python3 flumen health
 ```
 
 ## Step 1: Create a Database
@@ -15,7 +15,7 @@ make health
 Open the Spark SQL shell:
 
 ```bash
-make shell-spark-sql
+python3 flumen shell-spark-sql
 ```
 
 Create your first database:
@@ -186,7 +186,7 @@ ORDER BY total_spent DESC;
 Exit Spark SQL (`Ctrl+D`) and open PySpark:
 
 ```bash
-make shell-pyspark
+python3 flumen shell-pyspark
 ```
 
 Run Python code:

@@ -62,20 +62,20 @@ A configuração é gerada de `templates/hive/hive-site.xml.tpl`:
 </configuration>
 ```
 
-## Comandos Make
+## Comandos Python CLI
 
 ```bash
 # Configuração
-make config-hive           # Gerar hive-site.xml
+python3 flumen config --service hive           # Gerar hive-site.xml
 
 # Gerenciamento de serviço
-make up-tier1              # Iniciar Hive Metastore
-make logs-hive             # Ver logs do Hive
+python3 flumen up --tier 1              # Iniciar Hive Metastore
+python3 flumen logs --service hive-metastore             # Ver logs do Hive
 
 # Saúde e verificação
-make health-hive           # Verificar se o Hive está saudável
-make verify-hive           # Verificar configuração do Hive e mostrar databases
-make test-hive             # Testar conectividade do metastore
+python3 flumen health --service hive-metastore           # Verificar se o Hive está saudável
+python3 flumen verify-hive           # Verificar configuração do Hive e mostrar databases
+python3 flumen test --service hive-metastore             # Testar conectividade do metastore
 ```
 
 ## Schema do Banco de Dados
@@ -103,7 +103,7 @@ Crie databases usando Spark SQL:
 
 ```bash
 # Shell interativo Spark SQL
-make shell-spark-sql
+python3 flumen shell-spark-sql
 
 # Criar database
 spark-sql> CREATE DATABASE my_database
@@ -115,10 +115,10 @@ spark-sql> SHOW DATABASES;
 
 ## Verificação
 
-Execute o alvo de verificação para ver todos os databases:
+Execute o comando de verificação para ver todos os databases:
 
 ```bash
-make verify-hive
+python3 flumen verify-hive
 ```
 
 Isso exibe:
@@ -133,14 +133,14 @@ Isso exibe:
 
 Verificar logs para driver JDBC ausente:
 ```bash
-make logs-hive | grep -i "jdbc\|driver\|postgres"
+python3 flumen logs --service hive-metastore --no-follow | grep -i "jdbc\|driver\|postgres"
 ```
 
 ### Não pode conectar ao PostgreSQL
 
 Verificar que o PostgreSQL está saudável e a conectividade de rede:
 ```bash
-make health-postgres
+python3 flumen health --service postgres
 docker exec flumen_hive_metastore nc -zv postgres 5432
 ```
 

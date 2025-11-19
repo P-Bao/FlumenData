@@ -84,23 +84,23 @@ SPARK_WORKER_MEMORY=2g
 SPARK_WORKER_WEBUI_PORT=8081
 ```
 
-## Comandos Make
+## Comandos Python CLI
 
 ```bash
 # Configuração
-make config-spark          # Gerar spark-defaults.conf e spark-env.sh
+python3 flumen config --service spark          # Gerar spark-defaults.conf e spark-env.sh
 
 # Gerenciamento de serviço
-make up-tier1              # Iniciar cluster Spark (Master + Workers)
-make logs-spark            # Ver logs do Spark
+python3 flumen up --tier 1              # Iniciar cluster Spark (Master + Workers)
+python3 flumen logs --service spark-master            # Ver logs do Spark
 
 # Saúde e verificação
-make health-spark-master   # Verificar se o Master está saudável
-make health-spark-workers  # Verificar se os Workers estão saudáveis
+python3 flumen health --service spark-master   # Verificar se o Master está saudável
+python3 flumen health --service spark-worker1  # Verificar se os Workers estão saudáveis
 
 # Testes
-make test-spark            # Executar job de exemplo SparkPi
-make persist-spark         # Testar estabilidade de restart do cluster
+python3 flumen test --service spark-master            # Executar job de exemplo SparkPi
+python3 flumen test --service spark-master --persistence         # Testar estabilidade de restart do cluster
 ```
 
 ## Arquitetura do Cluster
@@ -138,7 +138,7 @@ flumen_spark_logs   # Logs do Spark
 ### Spark Shell (Scala)
 
 ```bash
-make shell-spark
+python3 flumen shell-spark
 # ou diretamente
 docker exec -it flumen_spark_master /opt/spark/bin/spark-shell \
   --master spark://spark-master:7077
@@ -158,7 +158,7 @@ df.write.format("delta").mode("overwrite")
 ### PySpark (Python)
 
 ```bash
-make shell-pyspark
+python3 flumen shell-pyspark
 # ou diretamente
 docker exec -it flumen_spark_master /opt/spark/bin/pyspark \
   --master spark://spark-master:7077
@@ -206,7 +206,7 @@ spark.sql("SELECT * FROM customers VERSION AS OF 0").show()
 ### Spark SQL
 
 ```bash
-make shell-spark-sql
+python3 flumen shell-spark-sql
 # ou diretamente
 docker exec -it flumen_spark_master /opt/spark/bin/spark-sql \
   --master spark://spark-master:7077
@@ -322,7 +322,7 @@ Pacotes comuns:
 
 ## Interfaces Web
 
-Acesse as UIs do Spark após executar `make up-tier1`:
+Acesse as UIs do Spark após executar `python3 flumen up --tier 1`:
 
 - **UI do Spark Master**: http://localhost:8080
   - Status do cluster e informações dos workers
@@ -342,7 +342,7 @@ docker exec flumen_spark_worker1 nc -zv spark-master 7077
 
 Verificar que o Master está saudável:
 ```bash
-make health-spark-master
+python3 flumen health --service spark-master
 docker exec flumen_spark_master curl -sf http://localhost:8080/
 ```
 
@@ -356,8 +356,8 @@ docker exec flumen_spark_master ls -la /opt/spark/.ivy2/
 Limpar cache Ivy e reiniciar:
 ```bash
 docker volume rm flumen_spark_ivy
-make restart
-make health-spark-master
+python3 flumen restart
+python3 flumen health --service spark-master
 ```
 
 ### Erros de conexão S3A
@@ -376,7 +376,7 @@ docker exec flumen_spark_master cat /opt/spark/conf/spark-defaults.conf | grep s
 
 Verificar que o Hive Metastore está saudável:
 ```bash
-make health-hive
+python3 flumen health --service hive-metastore
 docker exec flumen_spark_master nc -zv hive-metastore 9083
 ```
 

@@ -1,0 +1,383 @@
+#!/usr/bin/env python3
+"""
+FlumenData CLI - Open Source Lakehouse Platform
+Cross-platform environment management (Windows, Linux, macOS)
+"""
+
+import sys
+import argparse
+from pathlib import Path
+
+# Add scripts directory to path
+sys.path.insert(0, str(Path(__file__).parent / "scripts"))
+
+from flumendata import __version__
+from flumendata.utils import Colors, print_banner, load_env_file
+from flumendata.config import SERVICE_GENERATORS
+from flumendata.init import init_data_dirs, init_minio, init_hive
+from flumendata.docker_ops import (
+    up_services, down_services, restart_services,
+    show_logs, show_status, show_summary
+)
+from flumendata.health import check_tier_health, check_all_health
+from flumendata.shell import (
+    shell_postgres, shell_spark, shell_pyspark,
+    shell_spark_sql, shell_minio_client
+)
+from flumendata.verify import verify_hive
+from flumendata.services import get_jupyterlab_token, init_superset_db
+from flumendata.testing import test_tier, test_all, test_integration
+from flumendata.cleanup import cleanup_tier, cleanup_all, clean_environment, rebuild_images, prune_docker
+
+
+def create_parser():
+    """Create argument parser for FlumenData CLI"""
+    parser = argparse.ArgumentParser(
+        description="FlumenData - Open Source Lakehouse Platform",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python3 flumen init              # Complete environment initialization
+  python3 flumen up --tier 0       # Start Tier 0 services
+  python3 flumen health            # Check all services health
+  python3 flumen shell-pyspark     # Open PySpark shell
+  python3 flumen test --tier 0     # Test Tier 0 services
+
+For more information: https://github.com/FlumenData/FlumenData
+        """
+    )
+
+    parser.add_argument(
+        '--version', '-v',
+        action='version',
+        version=f'FlumenData {__version__}'
+    )
+
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+
+    # ===== INIT COMMAND =====
+    init_parser = subparsers.add_parser('init', help='Complete environment initialization')
+    init_parser.add_argument('--skip-banner', action='store_true', help='Skip banner display')
+
+    # ===== INIT-DIRS COMMAND =====
+    subparsers.add_parser('init-dirs', help='Initialize data directories only')
+
+    # ===== CONFIG COMMAND =====
+    config_parser = subparsers.add_parser('config', help='Generate configuration files')
+    config_parser.add_argument(
+        '--service', '-s',
+        choices=list(SERVICE_GENERATORS.keys()),
+        default='all',
+        help='Service to configure (default: all)'
+    )
+
+    # ===== UP COMMAND =====
+    up_parser = subparsers.add_parser('up', help='Start services')
+    up_parser.add_argument('--tier', '-t', type=int, choices=[0, 1, 2, 3], help='Tier to start (default: all)')
+    up_parser.add_argument('--services', '-s', nargs='+', help='Specific services to start')
+
+    # ===== DOWN COMMAND =====
+    subparsers.add_parser('down', help='Stop all services')
+
+    # ===== RESTART COMMAND =====
+    subparsers.add_parser('restart', help='Restart all services')
+
+    # ===== LOGS COMMAND =====
+    logs_parser = subparsers.add_parser('logs', help='Show service logs')
+    logs_parser.add_argument('--tier', '-t', type=int, choices=[0, 1, 2, 3], help='Tier logs to show')
+    logs_parser.add_argument('--service', '-s', help='Specific service logs')
+    logs_parser.add_argument('--no-follow', action='store_true', help='Don\'t follow log output')
+
+    # ===== PS/STATUS COMMAND =====
+    subparsers.add_parser('ps', help='Show container status')
+    subparsers.add_parser('status', help='Show container status (alias for ps)')
+
+    # ===== HEALTH COMMAND =====
+    health_parser = subparsers.add_parser('health', help='Check service health')
+    health_parser.add_argument('--tier', '-t', type=int, choices=[0, 1, 2, 3], help='Tier to check (default: all)')
+
+    # ===== SUMMARY COMMAND =====
+    subparsers.add_parser('summary', help='Show environment summary')
+
+    # ===== SHELL COMMANDS =====
+    subparsers.add_parser('shell-postgres', help='Open PostgreSQL shell')
+    subparsers.add_parser('shell-spark', help='Open Spark shell (Scala)')
+    subparsers.add_parser('shell-pyspark', help='Open PySpark shell (Python)')
+    subparsers.add_parser('shell-spark-sql', help='Open Spark SQL shell')
+    subparsers.add_parser('shell-mc', help='Open MinIO client (mc) shell')
+
+    # ===== VERIFY COMMAND =====
+    subparsers.add_parser('verify-hive', help='Verify Hive Metastore setup')
+
+    # ===== SERVICE-SPECIFIC COMMANDS =====
+    subparsers.add_parser('token-jupyterlab', help='Get JupyterLab access token')
+    subparsers.add_parser('superset-db', help='Initialize Superset database')
+
+    # ===== TEST COMMANDS =====
+    test_parser = subparsers.add_parser('test', help='Run tests')
+    test_parser.add_argument('--tier', '-t', type=int, choices=[0, 1, 2, 3], help='Tier to test (default: all)')
+    test_parser.add_argument('--integration', action='store_true', help='Run integration test')
+
+    # ===== CLEANUP COMMANDS =====
+    cleanup_parser = subparsers.add_parser('cleanup', help='Cleanup test data')
+    cleanup_parser.add_argument('--tier', '-t', type=int, choices=[0, 1, 2], help='Tier to cleanup (default: all)')
+
+    clean_parser = subparsers.add_parser('clean', help='Stop services and remove volumes (WARNING: deletes all data)')
+    clean_parser.add_argument('--force', '-f', action='store_true', help='Skip confirmation prompt')
+
+    # ===== MAINTENANCE COMMANDS =====
+    subparsers.add_parser('rebuild', help='Rebuild all custom Docker images')
+    subparsers.add_parser('prune', help='Prune unused Docker resources')
+
+    # ===== HELP COMMAND =====
+    subparsers.add_parser('help', help='Show help message')
+
+    return parser
+
+
+def handle_init(args):
+    """Handle complete initialization - starts ALL tiers (0-3)"""
+    if not args.skip_banner:
+        print_banner()
+
+    print(f"{Colors.BLUE}Starting complete FlumenData initialization...{Colors.RESET}\n")
+
+    # Load environment
+    load_env_file()
+
+    # Step 1: Initialize data directories
+    print(f"{Colors.YELLOW}Step 1/10: Initializing data directories{Colors.RESET}")
+    init_data_dirs()
+    print()
+
+    # Step 2: Generate configurations
+    print(f"{Colors.YELLOW}Step 2/10: Generating configurations{Colors.RESET}")
+    from flumendata.config import generate_all_configs
+    generate_all_configs()
+    print()
+
+    # Step 3: Create Docker network
+    print(f"{Colors.YELLOW}Step 3/10: Creating Docker network{Colors.RESET}")
+    from flumendata.docker_ops import create_network
+    create_network()
+    print()
+
+    # Step 4: Start ALL services (Tier 0-3)
+    print(f"{Colors.YELLOW}Step 4/10: Starting all services (Tiers 0-3){Colors.RESET}")
+    up_services(tier=None)  # Start all tiers
+    print()
+
+    # Step 5: Check Tier 0 health and initialize
+    print(f"{Colors.YELLOW}Step 5/10: Initializing Tier 0 (Foundation){Colors.RESET}")
+    check_tier_health(0)
+    init_minio()
+    print()
+
+    # Step 6: Check Tier 1 health and initialize
+    print(f"{Colors.YELLOW}Step 6/10: Initializing Tier 1 (Data Platform){Colors.RESET}")
+    check_tier_health(1)
+    init_hive()
+    print()
+
+    # Step 7: Check Tier 2 health
+    print(f"{Colors.YELLOW}Step 7/10: Checking Tier 2 (Analytics){Colors.RESET}")
+    check_tier_health(2)
+    print()
+
+    # Step 8: Initialize Superset database
+    print(f"{Colors.YELLOW}Step 8/10: Initializing Superset database{Colors.RESET}")
+    from flumendata.init import init_superset
+    init_superset()
+    print()
+
+    # Step 9: Check Tier 3 health
+    print(f"{Colors.YELLOW}Step 9/10: Checking Tier 3 (BI & SQL){Colors.RESET}")
+    check_tier_health(3)
+    print()
+
+    # Step 10: Summary
+    print(f"{Colors.YELLOW}Step 10/10: Environment Summary{Colors.RESET}")
+    show_summary()
+
+    print(f"{Colors.GREEN}✓ FlumenData initialized successfully!{Colors.RESET}\n")
+    print(f"{Colors.GREEN}All services are running!{Colors.RESET}\n")
+    print(f"{Colors.BLUE}Quick Commands:{Colors.RESET}")
+    print(f"  • Check health: python3 flumen health")
+    print(f"  • View logs:    python3 flumen logs")
+    print(f"  • Open PySpark: python3 flumen shell-pyspark")
+    print()
+
+
+def show_welcome():
+    """Show friendly welcome message when no command provided"""
+    print_banner()
+
+    print(f"{Colors.BLUE}Welcome to FlumenData CLI!{Colors.RESET}")
+    print()
+    print("FlumenData is an open-source lakehouse platform combining:")
+    print("  • Delta Lake (table format)")
+    print("  • Apache Spark (compute)")
+    print("  • Hive Metastore (catalog)")
+    print("  • MinIO (S3-compatible storage)")
+    print()
+
+    print(f"{Colors.YELLOW}Quick Start:{Colors.RESET}")
+    print(f"  {Colors.GREEN}python3 flumen init{Colors.RESET}              # Initialize everything")
+    print(f"  {Colors.GREEN}python3 flumen summary{Colors.RESET}           # View environment info")
+    print(f"  {Colors.GREEN}python3 flumen health{Colors.RESET}            # Check services")
+    print()
+
+    print(f"{Colors.YELLOW}Common Commands:{Colors.RESET}")
+    print(f"  {Colors.BLUE}Service Management:{Colors.RESET}")
+    print("    python3 flumen up --tier 0         # Start foundation services")
+    print("    python3 flumen down                # Stop all services")
+    print("    python3 flumen ps                  # Show status")
+    print()
+    print(f"  {Colors.BLUE}Development:{Colors.RESET}")
+    print("    python3 flumen shell-pyspark       # Open PySpark shell")
+    print("    python3 flumen logs --service spark-master")
+    print("    python3 flumen test --tier 0       # Run tests")
+    print()
+    print(f"  {Colors.BLUE}Configuration:{Colors.RESET}")
+    print("    python3 flumen config              # Generate all configs")
+    print("    python3 flumen verify-hive         # Verify Hive setup")
+    print()
+
+    print(f"{Colors.YELLOW}Get Help:{Colors.RESET}")
+    print("    python3 flumen --help              # Show all commands")
+    print("    python3 flumen <command> --help    # Command-specific help")
+    print()
+
+    print(f"{Colors.YELLOW}Documentation:{Colors.RESET}")
+    print("    QUICK_START.md      - Quick start guide")
+    print("    CLI_REFERENCE.md    - Complete command reference")
+    print("    PYTHON_CLI_GUIDE.md - Detailed usage guide")
+    print()
+
+    print(f"{Colors.BLUE}Ready to get started?{Colors.RESET}")
+    print(f"  Run: {Colors.GREEN}python3 flumen init{Colors.RESET}")
+    print()
+
+
+def main():
+    """Main entry point for FlumenData CLI"""
+    parser = create_parser()
+    args = parser.parse_args()
+
+    # If no command provided, show friendly welcome
+    if not args.command:
+        show_welcome()
+        return 0
+
+    try:
+        # Handle commands
+        if args.command == 'help':
+            parser.print_help()
+
+        elif args.command == 'init':
+            handle_init(args)
+
+        elif args.command == 'init-dirs':
+            load_env_file()
+            init_data_dirs()
+
+        elif args.command == 'config':
+            load_env_file()
+            generator = SERVICE_GENERATORS[args.service]
+            generator()
+
+        elif args.command == 'up':
+            up_services(tier=args.tier, services=args.services)
+
+        elif args.command == 'down':
+            down_services()
+
+        elif args.command == 'restart':
+            restart_services()
+
+        elif args.command == 'logs':
+            show_logs(tier=args.tier, service=args.service, follow=not args.no_follow)
+
+        elif args.command in ['ps', 'status']:
+            show_status()
+
+        elif args.command == 'health':
+            if args.tier is not None:
+                check_tier_health(args.tier)
+            else:
+                check_all_health()
+
+        elif args.command == 'summary':
+            show_summary()
+
+        # Shell commands
+        elif args.command == 'shell-postgres':
+            shell_postgres()
+
+        elif args.command == 'shell-spark':
+            shell_spark()
+
+        elif args.command == 'shell-pyspark':
+            shell_pyspark()
+
+        elif args.command == 'shell-spark-sql':
+            shell_spark_sql()
+
+        elif args.command == 'shell-mc':
+            shell_minio_client()
+
+        # Verification commands
+        elif args.command == 'verify-hive':
+            verify_hive()
+
+        # Service-specific commands
+        elif args.command == 'token-jupyterlab':
+            get_jupyterlab_token()
+
+        elif args.command == 'superset-db':
+            init_superset_db()
+
+        # Test commands
+        elif args.command == 'test':
+            if args.integration:
+                test_integration()
+            elif args.tier is not None:
+                test_tier(args.tier)
+            else:
+                test_all()
+
+        # Cleanup commands
+        elif args.command == 'cleanup':
+            if args.tier is not None:
+                cleanup_tier(args.tier)
+            else:
+                cleanup_all()
+
+        elif args.command == 'clean':
+            clean_environment(force=args.force)
+
+        # Maintenance commands
+        elif args.command == 'rebuild':
+            rebuild_images()
+
+        elif args.command == 'prune':
+            prune_docker()
+
+        else:
+            parser.print_help()
+            return 1
+
+        return 0
+
+    except KeyboardInterrupt:
+        print(f"\n{Colors.YELLOW}Operation cancelled by user{Colors.RESET}")
+        return 130
+    except Exception as e:
+        print(f"{Colors.RED}✗ Error: {e}{Colors.RESET}")
+        import traceback
+        traceback.print_exc()
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

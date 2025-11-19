@@ -17,18 +17,18 @@
 - `MINIO_STORAGE_BUCKET` (padrão `storage`): Bucket de staging para CSV/XLSX/ZIP antes da ingestão.
 
 ## Como é gerado
-- Alvo: `make config-minio` renderiza templates em `/config/minio/` usando envsubst (local ou via Docker).
+- Comando: `python3 flumen config --service minio` renderiza templates em `/config/minio/` usando envsubst (local ou via Docker).
 
 ## Validação
 ```bash
 # Aguardar saúde
-make health-minio
+python3 flumen health --service minio
 
 # Smoke test: criar bucket, enviar e ler um arquivo
-make test-minio
+python3 flumen test --service minio
 
 # Persistência: reiniciar e verificar objeto
-make persist-minio
+python3 flumen test --service minio --persistence
 ```
 
 ## Endpoints úteis

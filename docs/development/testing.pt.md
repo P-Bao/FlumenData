@@ -15,17 +15,17 @@ O FlumenData possui testes para garantir que todos os componentes funcionem em c
 
 ```
 Hierarquia de Testes:
-├── make test
-│   ├── make test-tier0
-│   │   ├── make test-postgres
-│   │   └── make test-minio
-│   └── make test-tier1
-│       ├── make test-hive
-│       └── make test-spark
-│   └── make test-tier2
-│       └── make test-jupyterlab
-│   └── make test-tier3
-│       └── make test-trino
+├── python3 flumen test
+│   ├── python3 flumen test --tier 0
+│   │   ├── python3 flumen test --service postgres
+│   │   └── python3 flumen test --service minio
+│   └── python3 flumen test --tier 1
+│       ├── python3 flumen test --service hive-metastore
+│       └── python3 flumen test --service spark-master
+│   └── python3 flumen test --tier 2
+│       └── python3 flumen test --service jupyterlab
+│   └── python3 flumen test --tier 3
+│       └── python3 flumen test --service trino
 ```
 
 ## Executando Testes
@@ -33,7 +33,7 @@ Hierarquia de Testes:
 ### Suite Completa
 
 ```bash
-make test
+python3 flumen test
 ```
 
 **Saída esperada:**
@@ -47,19 +47,19 @@ make test
 ### Tiers Específicos
 
 ```bash
-make test-tier0
-make test-tier1
+python3 flumen test --tier 0
+python3 flumen test --tier 1
 ```
 
 ### Serviços Individuais
 
 ```bash
-make test-postgres
-make test-minio
-make test-hive
-make test-spark
-make test-jupyterlab
-make test-trino
+python3 flumen test --service postgres
+python3 flumen test --service minio
+python3 flumen test --service hive-metastore
+python3 flumen test --service spark-master
+python3 flumen test --service jupyterlab
+python3 flumen test --service trino
 ```
 
 ## Detalhes dos Testes
@@ -117,19 +117,19 @@ Valida:
 
 ## Testes de Persistência
 
-Os alvos `make persist-*` reiniciam serviços e verificam se os dados permanecem.
+Os comandos de persistência reiniciam serviços e verificam se os dados permanecem.
 
 Exemplo (PostgreSQL):
 ```bash
-make persist-postgres
+python3 flumen test --service postgres --persistence
 ```
 1. Reinicia o container
-2. Executa `make health-postgres`
+2. Executa verificação de saúde do postgres
 3. Conta linhas da tabela `selftest`
 
 ## Boas Práticas
 
-- Execute `make test` antes de abrir PR
-- Use `make test-tierX` durante o desenvolvimento de cada tier
+- Execute `python3 flumen test` antes de abrir PR
+- Use `python3 flumen test --tier <N>` durante o desenvolvimento de cada tier
 - Adicione novos testes junto com novos serviços ou features
-- Utilize os comandos `make logs-*` para debugging quando um teste falhar
+- Utilize os comandos `python3 flumen logs --service <serviço>` para debugging quando um teste falhar

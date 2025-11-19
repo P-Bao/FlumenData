@@ -7,7 +7,7 @@ Este guia mostra como criar sua primeira tabela Delta Lake e executar consultas 
 Complete o guia de [Instalação](installation.md) e verifique se todos os serviços estão ativos:
 
 ```bash
-make health
+python3 flumen health
 ```
 
 ## Passo 1: Criar um Banco de Dados
@@ -15,7 +15,7 @@ make health
 Abra o shell do Spark SQL:
 
 ```bash
-make shell-spark-sql
+python3 flumen shell-spark-sql
 ```
 
 Crie o banco:
@@ -171,7 +171,7 @@ ORDER BY total_spent DESC;
 Saia do Spark SQL (`Ctrl+D`) e abra o PySpark:
 
 ```bash
-make shell-pyspark
+python3 flumen shell-pyspark
 ```
 
 Exemplo em Python:

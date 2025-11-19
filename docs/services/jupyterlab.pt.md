@@ -21,28 +21,27 @@ O JupyterLab fornece:
 - **Integração S3/MinIO**: Acesso direto ao armazenamento data lake
 - **Stack Data Science**: pandas, matplotlib, seaborn, plotly para análise e visualização
 
-## Comandos Make
+## Comandos Python CLI
 
 ```bash
 # Construir e iniciar
-make build-jupyterlab        # Construir imagem customizada JupyterLab
-make up-tier2                # Iniciar JupyterLab e outros serviços Tier 2
+python3 flumen rebuild --service jupyterlab        # Construir imagem customizada JupyterLab
+python3 flumen up --tier 2                # Iniciar JupyterLab e outros serviços Tier 2
 
 # Acesso
-make token-jupyterlab        # Obter token de acesso JupyterLab
-make logs-jupyterlab         # Ver logs do JupyterLab
+python3 flumen token-jupyterlab        # Obter token de acesso JupyterLab
+python3 flumen logs --service jupyterlab         # Ver logs do JupyterLab
 
 # Desenvolvimento
-make shell-jupyterlab        # Abrir shell bash
-make python-jupyterlab       # Abrir shell Python
+python3 flumen shell-jupyterlab        # Abrir shell bash
 
 # Testes
-make test-jupyterlab         # Testar integração Spark
-make health-jupyterlab       # Verificar saúde do serviço
+python3 flumen test --service jupyterlab         # Testar integração Spark
+python3 flumen health --service jupyterlab       # Verificar saúde do serviço
 
 # Gerenciamento
-make restart-jupyterlab      # Reiniciar serviço
-make down-tier2              # Parar serviços Tier 2
+python3 flumen restart              # Reiniciar serviço
+python3 flumen down --tier 2              # Parar serviços Tier 2
 ```
 
 ## Primeiros Passos
@@ -50,13 +49,13 @@ make down-tier2              # Parar serviços Tier 2
 ### 1. Iniciar JupyterLab
 
 ```bash
-make up-tier2
+python3 flumen up --tier 2
 ```
 
 ### 2. Obter Token de Acesso
 
 ```bash
-make token-jupyterlab
+python3 flumen token-jupyterlab
 ```
 
 ### 3. Acessar UI Web
@@ -256,7 +255,7 @@ Diretório de dados compartilhados: `/home/jovyan/shared`
 
 Verificar se o Spark master está rodando:
 ```bash
-make health-spark-master
+python3 flumen health --service spark-master
 ```
 
 Verificar conectividade de rede:
@@ -268,7 +267,7 @@ docker exec flumen_jupyterlab nc -zv spark-master 7077
 
 Recuperar token dos logs:
 ```bash
-make token-jupyterlab
+python3 flumen token-jupyterlab
 ```
 
 Ou da lista de servidores:

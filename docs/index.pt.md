@@ -24,13 +24,13 @@ git clone https://github.com/lucianomauda/FlumenData.git
 cd FlumenData
 
 # 2) Inicialize o ambiente completo
-make init
+python3 flumen init
 
 # 3) Verifique que todos os serviços estão saudáveis
-make health
+python3 flumen health
 
 # 4) Visualize o resumo do ambiente
-make summary
+python3 flumen summary
 ```
 
 ## Arquitetura
@@ -152,83 +152,83 @@ graph TD
 - Integração S3A com MinIO
 - Cache Ivy para resolução rápida de dependências
 
-## Comandos Make
+## Comandos Python CLI
 
 ### Inicialização
 ```bash
-make init          # Configuração completa do ambiente
-make config        # Gerar todos os arquivos de configuração
-make up            # Iniciar todos os serviços
+python3 flumen init          # Configuração completa do ambiente
+python3 flumen config        # Gerar todos os arquivos de configuração
+python3 flumen up            # Iniciar todos os serviços
 ```
 
 ### Gerenciamento de Serviços
 ```bash
-make up-tier0      # Iniciar serviços de fundação
-make up-tier1      # Iniciar serviços de plataforma de dados
-make down          # Parar todos os serviços
-make restart       # Reiniciar todos os serviços
+python3 flumen up --tier 0      # Iniciar serviços de fundação
+python3 flumen up --tier 1      # Iniciar serviços de plataforma de dados
+python3 flumen down          # Parar todos os serviços
+python3 flumen restart       # Reiniciar todos os serviços
 ```
 
 ### Saúde e Validação
 ```bash
-make health        # Verificar saúde de todos os serviços
-make health-tier0  # Verificar serviços Tier 0
-make health-tier1  # Verificar serviços Tier 1
+python3 flumen health        # Verificar saúde de todos os serviços
+python3 flumen health --tier 0  # Verificar serviços Tier 0
+python3 flumen health --tier 1  # Verificar serviços Tier 1
 ```
 
 ### Testes
 ```bash
-make test          # Executar todos os testes
-make test-tier0    # Testar serviços de fundação
-make test-tier1    # Testar serviços de plataforma de dados
+python3 flumen test          # Executar todos os testes
+python3 flumen test --tier 0    # Testar serviços de fundação
+python3 flumen test --tier 1    # Testar serviços de plataforma de dados
 ```
 
 ### Verificação
 ```bash
-make verify-hive   # Verificar configuração do Hive Metastore
-make summary       # Exibir resumo do ambiente
-make ps            # Mostrar contêineres em execução
+python3 flumen verify-hive   # Verificar configuração do Hive Metastore
+python3 flumen summary       # Exibir resumo do ambiente
+python3 flumen ps            # Mostrar contêineres em execução
 ```
 
 ### Logs
 ```bash
-make logs          # Mostrar logs de todos os serviços
-make logs-tier0    # Mostrar logs do Tier 0
-make logs-tier1    # Mostrar logs do Tier 1
-make logs-spark    # Mostrar logs do Spark
-make logs-hive     # Mostrar logs do Hive Metastore
+python3 flumen logs          # Mostrar logs de todos os serviços
+python3 flumen logs --tier 0    # Mostrar logs do Tier 0
+python3 flumen logs --tier 1    # Mostrar logs do Tier 1
+python3 flumen logs --service spark-master    # Mostrar logs do Spark
+python3 flumen logs --service hive-metastore     # Mostrar logs do Hive Metastore
 ```
 
 ### Desenvolvimento
 ```bash
-make shell-postgres    # Abrir shell do PostgreSQL
-make shell-spark       # Abrir shell do Spark
-make shell-pyspark     # Abrir shell do PySpark
-make shell-spark-sql   # Abrir shell do Spark SQL
-make mc                # Abrir cliente MinIO
+python3 flumen shell-postgres    # Abrir shell do PostgreSQL
+python3 flumen shell-spark       # Abrir shell do Spark
+python3 flumen shell-pyspark     # Abrir shell do PySpark
+python3 flumen shell-spark-sql   # Abrir shell do Spark SQL
+python3 flumen shell-mc                # Abrir cliente MinIO
 ```
 
 ### Manutenção
 ```bash
-make reset         # Reset completo e reinicialização
-make clean         # Parar e remover tudo (PERIGOSO)
+python3 flumen rebuild         # Reconstrói imagens customizadas
+python3 flumen clean         # Parar e remover tudo (PERIGOSO)
 ```
 
 ## Convenções
 
 - Todo **código e comentários** estão em **Inglês**
-- Configuração é gerada via alvos do **Makefile** em `/config/` - nunca edite arquivos renderizados manualmente
+- Configuração é gerada via **CLI Python** em `/config/` - nunca edite arquivos renderizados manualmente
 - Cada serviço deve ter **healthcheck**, **volumes nomeados** e configuração estática em `/config/`
 - Documentação é mantida em **Inglês** (`docs/*.md`) e **Português** (`docs/*.pt.md`)
 
 ## Interfaces Web
 
-Após executar `make init`, acesse essas UIs:
+Após executar `python3 flumen init`, acesse essas UIs:
 
 - **Interface Spark Master**: http://localhost:8080
 - **Console MinIO**: http://localhost:9001 (minioadmin / minioadmin123)
 - Buckets: `lakehouse` (tabelas Delta) e `storage` (arquivos para ingestão)
-- **JupyterLab**: http://localhost:8888 (execute `make token-jupyterlab` para obter o token)
+- **JupyterLab**: http://localhost:8888 (execute `python3 flumen token-jupyterlab` para obter o token)
 - **Console Trino**: http://localhost:${TRINO_PORT}
 - **Superset**: http://localhost:${SUPERSET_PORT} (login: `admin` / `admin123`)
 
