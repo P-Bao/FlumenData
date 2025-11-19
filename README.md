@@ -4,612 +4,228 @@
   <img src="docs/assets/images/flumendata-logowithname.png" alt="FlumenData" width="360">
 </p>
 
-<p align="center"><strong>Composable Lakehouse platform • Spark 4 + Delta Lake 4 • Docker Compose • Ready in minutes</strong></p>
+<p align="center"><strong>Production-ready Lakehouse Platform • Spark 4 + Delta Lake 4 • Docker Compose • Ready in 5 minutes</strong></p>
 
 <p align="center">
-  <a href="#-quick-start">Quick start</a> ·
-  <a href="#-architecture">Architecture</a> ·
-  <a href="#-brand-system">Brand system</a> ·
+  <a href="#-quick-start">Quick Start</a> ·
+  <a href="docs/getting-started/installation.md">Installation</a> ·
+  <a href="docs/">Documentation</a> ·
   <a href="./README_PT.md">Português</a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Docker-20.10%2B-157983.svg" alt="Docker">
-  <img src="https://img.shields.io/badge/Python-3.6%2B-3776AB.svg" alt="Python">
-  <img src="https://img.shields.io/badge/Spark-4.0.1-FDA931.svg" alt="Spark">
-  <img src="https://img.shields.io/badge/Delta%20Lake-4.0.0-20EFFD.svg" alt="Delta Lake">
+  <img src="https://img.shields.io/badge/Docker-20.10+-2496ED?logo=docker" alt="Docker">
+  <img src="https://img.shields.io/badge/Spark-4.0.1-E25A1C?logo=apache-spark" alt="Spark">
+  <img src="https://img.shields.io/badge/Delta%20Lake-4.0.0-00ADD8" alt="Delta Lake">
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
+  <img src="https://img.shields.io/badge/Maintained-Yes-green.svg" alt="Maintenance">
 </p>
 
-## 🎯 Overview
+---
 
-FlumenData is an **open-source lakehouse platform** that combines the best of data lakes and data warehouses. Built with Docker Compose, it provides a complete, reproducible environment for modern data engineering and analytics.
+## 🎯 What is FlumenData?
 
-**Current Status:**
-- ✅ **Tier 0 (Foundation)**: PostgreSQL, MinIO - validated and stable
-- ✅ **Tier 1 (Data Platform)**: Apache Spark 4.0.1, Hive Metastore 4.1.0, Delta Lake 4.0 - operational
-- ✅ **Tier 2 (Analytics & Development)**: JupyterLab - ready for daily use
-- ✅ **Tier 3 (SQL & BI)**: Trino, Superset - tuned for portfolio demos
+**FlumenData** is an open-source lakehouse platform that combines the best of data lakes and data warehouses. Built with Docker Compose, it provides a complete, production-ready environment for modern data engineering and analytics.
+
+**Perfect for:**
+- Learning Delta Lake and Apache Spark 4
+- Building data pipelines with ACID guarantees
+- Portfolio projects and data science demos
+- Local development before cloud deployment
+
+**Production Status:**
+- ✅ **Foundation** (PostgreSQL, MinIO) - Stable
+- ✅ **Data Platform** (Spark 4, Hive, Delta Lake 4) - Production-ready
+- ✅ **Analytics** (JupyterLab) - Daily use ready
+- ✅ **SQL & BI** (Trino, Superset) - Demo-ready
+
+---
 
 ## ✨ Key Features
 
-- **ACID Transactions**: Delta Lake provides ACID guarantees on object storage
-- **Time Travel**: Query historical versions of your data
-- **Schema Evolution**: Adapt schemas without breaking existing pipelines
-- **S3-Compatible Storage**: MinIO for scalable object storage
-- **Hive Metastore**: Industry-standard catalog with 2-level namespace
-- **Distributed Compute**: Apache Spark cluster (1 Master + 2 Workers)
-- **Cross-Platform CLI**: Python-based CLI works on Windows, Linux, and macOS
-- **One Command Setup**: Initialize the entire platform instantly
+- **🔒 ACID Transactions** - Delta Lake guarantees on object storage
+- **⏰ Time Travel** - Query historical versions and rollback changes
+- **🔄 Schema Evolution** - Adapt schemas without breaking pipelines
+- **📦 S3-Compatible** - MinIO for scalable object storage
+- **📚 Hive Metastore** - Industry-standard catalog (database.table)
+- **⚡ Distributed Compute** - Spark cluster (1 Master + 2 Workers)
+- **🖥️ Cross-Platform** - Works on Windows, Linux, and macOS
+- **🚀 One-Command Setup** - `make init` and you're running
+
+---
 
 ## 🏗️ Architecture
 
 ```mermaid
 graph TB
-    subgraph "Tier 1 - Data Platform"
-        SPARK[Apache Spark 4.0.1<br/>Master + 2 Workers]
-        HIVE[Hive Metastore 4.1.0<br/>Catalog Service]
-    end
-
-    subgraph "Tier 0 - Foundation"
-        POSTGRES[PostgreSQL 17.6<br/>Metadata Store]
-        MINIO[MinIO<br/>Object Storage]
-    end
-
-    subgraph "Data Layer"
-        DELTA[Delta Lake 4.0<br/>ACID Tables]
-    end
-
-    subgraph "Tier 2 - Analytics & Development"
-        JUPYTER[JupyterLab<br/>PySpark Workspace]
-    end
-
     subgraph "Tier 3 - SQL & BI"
-        TRINO[Trino<br/>Distributed SQL]
+        TRINO[Trino<br/>Distributed SQL Engine]
         SUPERSET[Superset<br/>BI Dashboards]
     end
 
+    subgraph "Tier 2 - Analytics"
+        JUPYTER[JupyterLab<br/>PySpark Notebooks]
+    end
+
+    subgraph "Tier 1 - Data Platform"
+        SPARK[Apache Spark 4.0.1<br/>1 Master + 2 Workers]
+        HIVE[Hive Metastore 4.1.0<br/>Catalog Service]
+        DELTA[Delta Lake 4.0<br/>ACID Tables]
+    end
+
+    subgraph "Tier 0 - Foundation"
+        POSTGRES[PostgreSQL 17.6<br/>Metadata DB]
+        MINIO[MinIO<br/>S3 Object Storage]
+    end
+
+    SUPERSET --> TRINO
+    TRINO --> HIVE
+    TRINO --> MINIO
+    JUPYTER --> SPARK
     SPARK --> HIVE
     SPARK --> DELTA
     DELTA --> MINIO
     HIVE --> POSTGRES
     HIVE --> MINIO
-    SPARK --> MINIO
-    JUPYTER --> SPARK
-    TRINO --> HIVE
-    TRINO --> MINIO
-    SUPERSET --> TRINO
 ```
 
 ### Technology Stack
 
-| Layer | Technology | Version | Purpose |
-|-------|-----------|---------|---------|
-| **Storage** | MinIO | RELEASE.2025-09-07 | S3-compatible object storage |
-| **Storage** | Delta Lake | 4.0.0 | ACID table format with time travel |
-| **Metadata** | Hive Metastore | 4.1.0 | Centralized catalog |
-| **Metadata** | PostgreSQL | 17.6 | Metadata backend |
-| **Compute** | Apache Spark | 4.0.1 | Distributed query engine |
-| **Analytics** | JupyterLab | spark-4.0.1 | PySpark notebooks & exploration |
-| **SQL** | Trino | 450 | Distributed SQL engine |
-| **BI** | Superset | 5.0.0 | Dashboards and data exploration |
+| Component | Technology | Version | Purpose |
+|-----------|-----------|---------|---------|
+| **Compute** | Apache Spark | 4.0.1 | Distributed processing engine |
+| **Format** | Delta Lake | 4.0.0 | ACID tables with time travel |
+| **Catalog** | Hive Metastore | 4.1.0 | Centralized metadata catalog |
+| **Storage** | MinIO | 2025.09 | S3-compatible object storage |
+| **Metadata** | PostgreSQL | 17.6 | Relational metadata backend |
+| **Analytics** | JupyterLab | Latest | PySpark workspace |
+| **SQL** | Trino | 450 | Distributed SQL queries |
+| **BI** | Superset | 5.0.0 | Visual analytics & dashboards |
+
+---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-**Required:**
-- Docker 20.10+
-- Docker Compose 2.0+
-- Python 3.6+
-- 16 GB RAM minimum (32 GB recommended)
-- 20 GB free disk space
+- **Docker** 20.10+ & **Docker Compose** 2.0+
+- **Python** 3.6+
+- **8GB RAM** minimum (16GB recommended)
+- **20GB disk** space
 
-**Installing Python:**
+> **📖 Detailed installation guide:** [docs/getting-started/installation.md](docs/getting-started/installation.md)
 
-<details>
-<summary><b>Windows</b></summary>
-
-Install Python from Microsoft Store (recommended):
-1. Open **Microsoft Store**
-2. Search for **"Python"**
-3. Install **Python 3.12** (or latest version)
-4. Verify installation:
-   ```powershell
-   python --version
-   ```
-
-Alternative: Download from [python.org](https://www.python.org/downloads/)
-
-</details>
-
-<details>
-<summary><b>Linux</b></summary>
-
-Python is usually pre-installed. Verify:
-```bash
-python3 --version
-```
-
-If not installed:
-```bash
-# Ubuntu/Debian
-sudo apt update && sudo apt install python3
-
-# Fedora/RHEL
-sudo dnf install python3
-
-# Arch
-sudo pacman -S python
-```
-
-</details>
-
-<details>
-<summary><b>macOS</b></summary>
-
-Python is pre-installed. Verify:
-```bash
-python3 --version
-```
-
-To install/update:
-```bash
-# Using Homebrew
-brew install python3
-```
-
-</details>
-
-### Installation
+### Install & Run
 
 ```bash
 # 1. Clone the repository
 git clone https://github.com/lucianomauda/FlumenData.git
 cd FlumenData
 
-# 2. Make CLI executable (Linux/macOS only)
-chmod +x flumen
+# 2. Initialize everything (builds images, starts services, runs health checks)
+make init
 
-# 3. Initialize the environment
-python3 flumen init
-
-# 4. Verify all services are healthy
-python3 flumen health
-
-# 5. View environment summary
-python3 flumen summary
+# 3. Open JupyterLab and run the quickstart notebook
+open http://localhost:8888
 ```
 
-**Windows users:** Use `python flumen` instead of `python3 flumen`
+**That's it!** ✨ The entire lakehouse is now running.
 
-### Your First Query
+---
 
-```bash
-# Open Spark SQL shell
-python3 flumen shell-spark-sql
+## 📚 Access Your Services
 
-# Create a database
-CREATE DATABASE quickstart
-LOCATION 's3a://lakehouse/warehouse/quickstart.db';
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| **JupyterLab** | http://localhost:8888 | No password |
+| **Spark Master UI** | http://localhost:8080 | - |
+| **MinIO Console** | http://localhost:9001 | admin / admin123 |
+| **Trino** | http://localhost:8082 | - |
+| **Superset** | http://localhost:8088 | admin / admin123 |
 
-# Create a Delta table
-CREATE TABLE quickstart.customers (
-  id BIGINT,
-  name STRING,
-  email STRING
-) USING DELTA;
-
-# Insert data
-INSERT INTO quickstart.customers VALUES
-  (1, 'Alice', 'alice@example.com'),
-  (2, 'Bob', 'bob@example.com');
-
-# Query data
-SELECT * FROM quickstart.customers;
-```
-
-## 📊 Web Interfaces
-
-After running `python3 flumen init`, access:
-
-- **Spark Master UI**: http://localhost:8080 - Cluster status and job monitoring
-- **MinIO Console**: http://localhost:9001 - Object storage management
-  - Username: `minioadmin`
-  - Password: `minioadmin123`
-  - Buckets: `lakehouse` (Delta tables), `storage` (ingest-ready files)
-- **JupyterLab**: http://localhost:8888 - Data exploration notebooks
-  - Get token: `python3 flumen token-jupyterlab`
-- **Trino Console**: http://localhost:${TRINO_PORT} - Query history and thread pools
-- **Superset**: http://localhost:${SUPERSET_PORT} - BI dashboards
-  - Login: `admin` / `admin123`
+---
 
 ## 📖 Documentation
 
-Comprehensive documentation is available in both English and Portuguese:
+- **[Installation Guide](docs/getting-started/installation.md)** - Detailed setup for Windows/Linux/macOS
+- **[Quick Start](docs/getting-started/quickstart.md)** - Your first Delta Lake table in 5 minutes
+- **[Architecture](docs/getting-started/architecture.md)** - How all components work together
+- **[CLI Reference](docs/configuration/commands.md)** - Complete command documentation
+- **[Service Guides](docs/services/)** - Deep dives into each component
 
-- **English**: [docs/index.md](docs/index.md)
-- **Portuguese**: [docs/index.pt.md](docs/index.pt.md)
-
-Key documentation pages:
-- [Installation Guide](docs/getting-started/installation.md)
-- [Quick Start Tutorial](docs/getting-started/quickstart.md)
-- [Architecture Deep Dive](docs/getting-started/architecture.md)
-- [Hive Metastore](docs/services/hive.md)
-- [Apache Spark](docs/services/spark.md)
-- [Apache Superset](docs/services/superset.md)
-- [Configuration](docs/configuration/environment.md)
+---
 
 ## 🛠️ Common Commands
 
-**Get Help:**
 ```bash
-python3 flumen           # Show welcome message
-python3 flumen --help    # List all commands
+# Service Management
+make up              # Start all services
+make down            # Stop all services
+make restart         # Restart all services
+make ps              # Show service status
+
+# Health & Monitoring
+make health          # Check all services health
+make logs            # View all logs
+make logs-spark      # View specific service logs
+
+# Interactive Shells
+make shell-pyspark   # Open PySpark shell
+make shell-postgres  # Open PostgreSQL shell
+make shell-mc        # Open MinIO client shell
+
+# Maintenance
+make clean           # Stop services & remove volumes (⚠️ deletes data)
+make rebuild         # Rebuild all custom images
 ```
 
-**Service Management:**
-```bash
-python3 flumen init              # Complete initialization
-python3 flumen up                # Start all services
-python3 flumen up --tier 2       # Start analytics & ML services
-python3 flumen up --tier 3       # Start orchestration & BI services
-python3 flumen down              # Stop all services
-python3 flumen restart           # Restart all services
-python3 flumen ps                # Show container status
-```
+> **📖 Full command reference:** [docs/configuration/commands.md](docs/configuration/commands.md)
 
-**Health Checks:**
-```bash
-python3 flumen health            # Check all services
-python3 flumen health --tier 0   # Check foundation services
-python3 flumen health --tier 1   # Check data platform services
-python3 flumen health --tier 2   # Check analytics & ML services
-python3 flumen health --tier 3   # Check orchestration & BI services
-python3 flumen verify-hive       # Verify Hive Metastore setup
-```
+---
 
-**Testing:**
-```bash
-python3 flumen test              # Run all tests
-python3 flumen test --tier 0     # Test Tier 0 services
-python3 flumen test --tier 1     # Test Tier 1 services
-python3 flumen test --integration # Run integration test
-```
+## 🎨 Brand & Design
 
-**Interactive Shells:**
-```bash
-python3 flumen shell-spark       # Spark Scala shell
-python3 flumen shell-pyspark     # PySpark Python shell
-python3 flumen shell-spark-sql   # Spark SQL shell
-python3 flumen shell-postgres    # PostgreSQL shell
-python3 flumen shell-mc          # MinIO client
-```
+FlumenData has a consistent visual identity. See our [Brand Guidelines](docs/brand.md) for colors, typography, and logo usage.
 
-**Service Helpers:**
-```bash
-python3 flumen token-jupyterlab  # Get JupyterLab token
-python3 flumen superset-db       # Initialize Superset database
-```
+**Quick Reference:**
+- **Primary Color:** `#157983` (Teal Blue)
+- **Logo Files:** Available in `docs/assets/images/`
+- **Typography:** DM Sans (headings) + Inter (body)
 
-**Maintenance:**
-```bash
-python3 flumen logs              # View all logs
-python3 flumen summary           # Environment overview
-python3 flumen config            # Regenerate all configs
-python3 flumen clean             # Remove everything (DESTRUCTIVE)
-python3 flumen rebuild           # Rebuild custom Docker images
-python3 flumen prune             # Clean up Docker resources
-```
+---
 
-**Optional: Using Make**
+## 🤝 Contributing
 
-For convenience, you can also use `make` commands:
-```bash
-make init       # Calls: python3 flumen init
-make health     # Calls: python3 flumen health
-make up         # Calls: python3 flumen up
-```
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 🎨 Brand System
+**Project Focus:**
+- Keep it simple and reproducible
+- Maintain cross-platform compatibility
+- Prioritize developer experience
+- Use standard, production-ready tools
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| **FD Dark** | `#14171C` | Hero backgrounds, dark shells, CLI snippets |
-| **FD Cyan (Trino)** | `#20EFFD` | Trino callouts, fast-query highlights, accent borders |
-| **FD Orange (JupyterLab)** | `#FDA931` | JupyterLab/experimentation badges |
-| **FD Blue / Teal (Superset)** | `#0082C8` | Superset UI mentions, BI tiles |
-| **FD Lime** | `#B8E762` | Health checks, success states |
-| **FD Teal Deep** | `#157983` | Foundation services (PostgreSQL/MinIO) and navigation highlights |
-| **FD Light** | `#F5F7FB` | Neutral backgrounds, cards |
-| **FD Gray / FD Gray Dark** | `#9CA3AF` / `#4B5563` | Secondary text, borders, inactive elements |
+---
 
-- When mapping services, keep the tool-specific rules: **JupyterLab → orange**, **Trino → cyan**, **Superset → blue/teal**, **foundation** nodes → teal with lime accents.
-- For status chips, use lime for healthy/running and gray for neutral/offline.
-- In diagrams, stay within two or three bright colors at a time so the layout remains clean.
+## 📄 License
 
-## ✏️ Typography & Assets
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-| Context | Font stack | Notes |
-|---------|------------|-------|
-| Headings / logotype | Space Grotesk (700 for H1, 600 for H2/H3) | Primary identity typeface used across README and MkDocs hero sections |
-| Body content | Inter (400/500) | Applied everywhere through `docs/assets/styles/brand.css` |
-| Code & configuration | JetBrains Mono (fallback: Fira Code) | Shell commands, SQL, YAML, docker-compose snippets |
-
-- The docs site loads these fonts via `docs/assets/styles/brand.css`, which also sets the Material theme palette to the brand colors.
-- Use the vector logos located under `docs/assets/images/` (`flumendata-logowithname.png`, `flumendata-logoonly.png`, `flumendata.ico`) for README hero blocks, MkDocs logos, and future diagrams.
-- For GitHub-specific assets (badges, callouts), stick to the palette above to keep the identity cohesive.
-
-## 📁 Project Structure
-
-```
-FlumenData/
-├── flumen                      # Python CLI entry point
-├── Makefile                    # Optional Make wrapper
-├── scripts/                    # Python CLI package
-│   └── flumendata/
-│       ├── __init__.py
-│       ├── utils.py           # Core utilities
-│       ├── config.py          # Configuration generation
-│       ├── docker_ops.py      # Docker operations
-│       ├── health.py          # Health checks
-│       ├── init.py            # Initialization
-│       ├── shell.py           # Shell access
-│       ├── testing.py         # Testing commands
-│       ├── cleanup.py         # Cleanup commands
-│       ├── verify.py          # Verification
-│       └── services.py        # Service helpers
-├── config/                     # Generated configuration (DO NOT EDIT)
-├── docker/                     # Custom Dockerfiles
-│   ├── hive.Dockerfile        # Hive Metastore + PostgreSQL JDBC
-│   ├── spark.Dockerfile       # Spark with health checks
-│   └── superset.Dockerfile    # Superset with psycopg2 + sqlalchemy-trino
-├── docs/                       # MkDocs Material documentation (EN + PT)
-├── templates/                  # Configuration templates
-│   ├── hive/
-│   ├── spark/
-│   ├── minio/
-│   ├── jupyterlab/
-│   ├── trino/
-│   └── superset/
-├── .env                        # Environment variables (not in git)
-├── docker-compose.tier0.yml    # Foundation services
-├── docker-compose.tier1.yml    # Data platform services
-├── docker-compose.tier2.yml    # Analytics & development services
-├── docker-compose.tier3.yml    # Orchestration & BI services
-├── mkdocs.yml                 # Documentation configuration
-└── README.md                   # This file
-```
-
-## 💾 Data Storage
-
-FlumenData uses **configurable bind mounts** for user data while keeping everything else in Docker volumes.
-
-### Data Directory Structure
-
-Only **2 directories** are exposed as bind mounts:
-
-```
-${DATA_DIR}/                  # Default: ../flumendata-data
-├── minio/                    # MinIO lakehouse storage
-│   ├── lakehouse/           # Delta Lake tables
-│   └── storage/             # Staging bucket for raw files
-└── notebooks/               # JupyterLab notebooks (YOUR WORK)
-    ├── _examples/           # Read-only examples
-    ├── 01_analysis.ipynb   # Your notebooks
-    └── .git/               # Optional: version control
-```
-
-Everything else (PostgreSQL metadata, Spark logs) stays in Docker volumes.
-
-### Configuration
-
-**Default Location:** `DATA_DIR=../flumendata-data` (sibling to FlumenData repo)
-
-Creates this structure:
-```
-your-workspace/
-├── FlumenData/          # This repository
-└── flumendata-data/     # Your data (can be separate git repo)
-```
-
-**Change Location** - Edit `.env`:
-
-```bash
-# Relative paths (RECOMMENDED - portable)
-DATA_DIR=../flumendata-data    # Sibling directory (default)
-DATA_DIR=./data                # Inside project
-DATA_DIR=../../my-data         # Parent directory
-
-# Absolute paths (machine-specific)
-DATA_DIR=/mnt/d/data-projects  # Windows D: drive (WSL)
-DATA_DIR=~/flumendata-data     # Linux home directory
-DATA_DIR=/home/user/flumen     # Linux absolute path
-```
-
-### Version Control Your Notebooks
-
-```bash
-cd /path/to/data-dir/notebooks
-git init
-git add .
-git commit -m "Initial analysis notebooks"
-git remote add origin https://github.com/yourusername/analysis.git
-git push
-```
-
-**Recommended .gitignore:**
-```gitignore
-.ipynb_checkpoints/
-_examples/
-__pycache__/
-*.csv
-*.parquet
-*.xlsx
-```
-
-### What to Backup
-
-**Critical:**
-- `${DATA_DIR}/minio/` - Your Delta Lake tables (can be TBs!)
-- `${DATA_DIR}/notebooks/` - Your analysis work (use git!)
-
-**Handled by Docker volumes:**
-- PostgreSQL metadata
-- Spark logs and caches
-- Superset dashboards
-
-**Backup commands:**
-```bash
-# Tar backup
-tar -czf flumendata-backup-$(date +%Y%m%d).tar.gz /path/to/data-dir
-
-# Or just use git for notebooks
-cd /path/to/data-dir/notebooks
-git push
-```
-
-## 🎓 Use Cases
-
-FlumenData is perfect for:
-
-- **Learning**: Understand modern data lakehouse architecture hands-on
-- **Development**: Build and test data pipelines locally
-- **Prototyping**: Experiment with Delta Lake and Spark
-- **Training**: Teach data engineering concepts
-- **POCs**: Prove concepts before production deployment
-
-## 🔄 Roadmap
-
-- ✅ **Tier 0 – Foundation**: PostgreSQL, MinIO
-- ✅ **Tier 1 – Data Platform**: Spark, Hive Metastore, Delta Lake
-- ✅ **Tier 2 – Analytics & Development**: JupyterLab
-- ✅ **Tier 3 – SQL & BI**: Trino, Superset
-- ✅ **Cross-Platform CLI**: Python CLI for Windows, Linux, macOS
-
-Key guidelines:
-- All code and comments in English
-- Update both EN and PT documentation
-- Run `python3 flumen test` before submitting
-- Follow existing code structure
-
-## 📝 Conventions
-
-- **Configuration Management**: Always edit templates in `templates/`, never edit generated files in `config/`
-- **Service Requirements**: Every service must have healthcheck, named volumes, and static config
-- **Documentation**: Maintained in both English and Portuguese
-- **Commits**: Use conventional commits format (e.g., `feat(spark): add Delta Lake 4.0 support`)
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-#### Services not starting
-
-```bash
-# Check Docker resources
-docker stats
-
-# View logs
-python3 flumen logs
-
-# Verify health
-python3 flumen health
-
-# Check specific service
-python3 flumen logs --service spark-master
-```
-
-#### Configuration issues
-
-```bash
-# Regenerate all configs
-python3 flumen config
-
-# Restart services
-python3 flumen restart
-```
-
-#### Port conflicts
-
-```bash
-# Check what's using a port
-sudo lsof -i :9000
-
-# Or change port in .env
-MINIO_PORT_API=9010
-```
-
-### Windows/WSL Specific
-
-#### Docker credentials error
-
-```bash
-# Reset Docker config
-cp ~/.docker/config.json ~/.docker/config.json.backup
-echo '{}' > ~/.docker/config.json
-```
-
-#### Bind mount errors after restart
-
-1. Stop all containers: `python3 flumen down`
-2. Restart Docker Desktop (right-click icon → Quit → Start)
-3. Or restart WSL: `wsl --shutdown` (from PowerShell)
-4. Reinitialize: `python3 flumen init`
-
-#### Slow performance on Windows drives
-
-Use native WSL filesystem for better performance:
-
-```bash
-# In .env - use WSL native path
-DATA_DIR=/home/username/flumendata-data
-
-# Access from Windows Explorer
-\\wsl$\Ubuntu\home\username\flumendata-data
-```
-
-### Complete Reset
-
-If everything is broken:
-
-```bash
-python3 flumen down
-docker system prune -af  # WARNING: Removes all Docker data
-rm -rf /path/to/data-dir  # Your DATA_DIR
-python3 flumen init
-```
-
-### Getting Help
-
-If issues persist:
-1. Check Docker Desktop is running
-2. Verify Python version: `python3 --version`
-3. Check disk space: `df -h`
-4. Review logs: `python3 flumen logs`
-5. Open an issue with:
-   - Output of `python3 flumen --version`
-   - Output of `docker version`
-   - Your platform (Windows/Linux/macOS)
-
-For more troubleshooting tips, see the [documentation](docs/getting-started/installation.md#troubleshooting-installation).
+---
 
 ## 🙏 Acknowledgments
 
-FlumenData builds on amazing open-source projects:
+Built with amazing open-source technologies:
 - [Apache Spark](https://spark.apache.org/)
 - [Delta Lake](https://delta.io/)
 - [Apache Hive](https://hive.apache.org/)
 - [MinIO](https://min.io/)
-- [PostgreSQL](https://www.postgresql.org/)
 - [Trino](https://trino.io/)
 - [Apache Superset](https://superset.apache.org/)
-- [Project Jupyter](https://jupyter.org/)
-
-## 📧 Contact
-
-- **Issues**: https://github.com/lucianomauda/FlumenData/issues
-- **Discussions**: https://github.com/lucianomauda/FlumenData/discussions
 
 ---
 
-**FlumenData** - Open, reproducible, and modern Lakehouse for everyone 🚀
+## 💬 Community & Support
+
+- **Issues:** [Report bugs or request features](https://github.com/lucianomauda/FlumenData/issues)
+- **Discussions:** [Ask questions and share ideas](https://github.com/lucianomauda/FlumenData/discussions)
+- **Author:** [Luciano Mauda Junior](https://github.com/lucianomauda) | [LinkedIn](https://www.linkedin.com/in/lucianomaudajunior)
