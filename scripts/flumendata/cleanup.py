@@ -4,7 +4,7 @@ Cleanup and maintenance commands for FlumenData
 
 import os
 from pathlib import Path
-from .utils import Colors, run_command, docker_compose, load_env_file
+from .utils import Colors, run_command, docker_compose, load_env_file, get_compose_files
 
 
 def cleanup_postgres():
@@ -120,11 +120,9 @@ def rebuild_images():
 
     load_env_file()
 
-    for tier in range(4):
-        compose_file = f"docker-compose.tier{tier}.yml"
-        if Path(compose_file).exists():
-            print(f"[rebuild] Processing {compose_file}...")
-            docker_compose("build", compose_files=[compose_file])
+    compose_files = get_compose_files(None)
+    print("[rebuild] Processing all tiers together...")
+    docker_compose("build", compose_files=compose_files)
 
     print(f"\n{Colors.GREEN}✓ All custom images rebuilt{Colors.RESET}")
 
