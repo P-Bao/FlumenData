@@ -118,19 +118,13 @@ def rebuild_images():
     """Rebuild all custom Docker images"""
     print(f"{Colors.BLUE}Rebuilding custom Docker images...{Colors.RESET}\n")
 
-    images = [
-        ("phbao/hive:standalone-metastore-4.1.0", "docker/hive.Dockerfile"),
-        ("phbao/spark:4.0.1-health", "docker/spark.Dockerfile"),
-        ("phbao/jupyterlab:spark-4.0.1", "docker/jupyterlab.Dockerfile"),
-        ("phbao/superset:5.0.0", "docker/superset.Dockerfile"),
-    ]
+    load_env_file()
 
-    for image_name, dockerfile in images:
-        print(f"[rebuild] Building {image_name}...")
-        run_command(
-            ["docker", "build", "-t", image_name, "-f", dockerfile, "."],
-            check=True
-        )
+    for tier in range(4):
+        compose_file = f"docker-compose.tier{tier}.yml"
+        if Path(compose_file).exists():
+            print(f"[rebuild] Processing {compose_file}...")
+            docker_compose("build", compose_files=[compose_file])
 
     print(f"\n{Colors.GREEN}✓ All custom images rebuilt{Colors.RESET}")
 
