@@ -56,6 +56,22 @@ def up_services(tier: int = None, services: list = None, build: bool = False):
         print(f"{Colors.BLUE}[{tier_name}] Starting services...{Colors.RESET}")
         compose_files = get_compose_files(None)
 
+    if not build:
+        # Check if containers exist
+        check_cmd = ["ps", "-q"]
+        if services:
+            check_cmd.extend(services)
+        
+        result = docker_compose(*check_cmd, compose_files=compose_files, capture_output=True, check=False)
+        if result.returncode == 0 and result.stdout.strip():
+            print(f"{Colors.YELLOW}[{tier_name}] Containers already exist. Starting existing containers...{Colors.RESET}")
+            start_cmd = ["start"]
+            if services:
+                start_cmd.extend(services)
+            docker_compose(*start_cmd, compose_files=compose_files)
+            print(f"{Colors.GREEN}✓ {tier_name.capitalize()} services started{Colors.RESET}")
+            return
+
     cmd = ["up", "-d"]
 
     if build:
@@ -82,8 +98,10 @@ def down_services():
 
 def restart_services():
     """Restart all services"""
-    down_services()
-    up_services(tier=None)
+    print(f"{Colors.YELLOW}Restarting all services...{Colors.RESET}")
+    compose_files = get_compose_files(None)
+    docker_compose("restart", compose_files=compose_files)
+    print(f"{Colors.GREEN}✓ All services restarted{Colors.RESET}")
 
 
 def show_logs(tier: int = None, service: str = None, follow: bool = True):
