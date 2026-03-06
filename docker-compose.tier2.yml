@@ -18,7 +18,7 @@ services:
         - POSTGRESQL_JDBC_VERSION=${POSTGRESQL_JDBC_VERSION}
         - DELTA_VERSION=${DELTA_VERSION}
         - SCALA_BINARY_VERSION=${SCALA_BINARY_VERSION}
-    image: flumendata/jupyterlab:spark-${SPARK_VERSION:-4.0.1}
+    image: phbao/jupyterlab:spark-${SPARK_VERSION:-4.0.1}
     hostname: jupyterlab
     ports:
       - "8888:8888"
@@ -51,7 +51,7 @@ services:
       hive-metastore:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/lab"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/lab" ]
       interval: 30s
       timeout: 10s
       retries: 3

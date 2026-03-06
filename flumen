@@ -75,6 +75,7 @@ For more information: https://github.com/FlumenData/FlumenData
     up_parser = subparsers.add_parser('up', help='Start services')
     up_parser.add_argument('--tier', '-t', type=int, choices=[0, 1, 2, 3], help='Tier to start (default: all)')
     up_parser.add_argument('--services', '-s', nargs='+', help='Specific services to start')
+    up_parser.add_argument('--build', action='store_true', help='Force build Docker images')
 
     # ===== DOWN COMMAND =====
     subparsers.add_parser('down', help='Stop all services')
@@ -287,7 +288,7 @@ def main():
             generator()
 
         elif args.command == 'up':
-            up_services(tier=args.tier, services=args.services)
+            up_services(tier=args.tier, services=args.services, build=args.build)
 
         elif args.command == 'down':
             down_services()

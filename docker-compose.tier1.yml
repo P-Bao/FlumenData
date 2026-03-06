@@ -9,7 +9,7 @@ services:
         POSTGRESQL_JDBC_VERSION: ${POSTGRESQL_JDBC_VERSION}
         HADOOP_AWS_VERSION: ${HADOOP_AWS_VERSION}
         AWS_SDK_BUNDLE_VERSION: ${AWS_SDK_BUNDLE_VERSION}
-    image: flumendata/hive:standalone-metastore-${HIVE_VERSION:-4.1.0}
+    image: phbao/hive:standalone-metastore-${HIVE_VERSION:-4.1.0}
     container_name: flumen_hive_metastore
     restart: unless-stopped
     environment:
@@ -26,7 +26,7 @@ services:
     volumes:
       - ./config/hive/hive-site.xml:/opt/hive/conf/hive-site.xml:ro
     healthcheck:
-      test: ["CMD-SHELL", "pgrep -f HiveMetaStore > /dev/null || exit 1"]
+      test: [ "CMD-SHELL", "pgrep -f HiveMetaStore > /dev/null || exit 1" ]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -39,7 +39,7 @@ services:
       dockerfile: docker/spark.Dockerfile
       args:
         SPARK_VERSION: ${SPARK_VERSION:-4.0.1}
-    image: flumendata/spark:${SPARK_VERSION:-4.0.1}-health
+    image: phbao/spark:${SPARK_VERSION:-4.0.1}-health
     container_name: flumen_spark_master
     restart: unless-stopped
     environment:
@@ -47,7 +47,7 @@ services:
       - SPARK_DIST_CLASSPATH=/opt/spark/conf:/opt/spark/jars/*
       - HADOOP_CONF_DIR=/opt/spark/conf
       - HOME=/opt/spark
-    command: ["/opt/spark/bin/spark-class","org.apache.spark.deploy.master.Master","--host","spark-master","--port","7077","--webui-port","8080"]
+    command: [ "/opt/spark/bin/spark-class", "org.apache.spark.deploy.master.Master", "--host", "spark-master", "--port", "7077", "--webui-port", "8080" ]
     ports:
       - "8080:8080"
       - "7077:7077"
@@ -64,14 +64,14 @@ services:
       hive-metastore:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL","curl -sf http://localhost:8080/ > /dev/null"]
+      test: [ "CMD-SHELL", "curl -sf http://localhost:8080/ > /dev/null" ]
       interval: 5s
       timeout: 3s
       retries: 30
 
   # Spark Worker 1
   spark-worker1:
-    image: flumendata/spark:${SPARK_VERSION:-4.0.1}-health
+    image: phbao/spark:${SPARK_VERSION:-4.0.1}-health
     container_name: flumen_spark_worker1
     restart: unless-stopped
     user: "0:0"
@@ -84,13 +84,7 @@ services:
     depends_on:
       spark-master:
         condition: service_healthy
-    command: ["/bin/sh","-lc",
-      "chown -R 185:0 /opt/spark/work /opt/spark/logs && \
-       exec /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker \
-       --memory ${SPARK_WORKER_MEMORY:-2g} \
-       --cores ${SPARK_WORKER_CORES:-2} \
-       --webui-port 8081 spark://spark-master:7077"
-    ]
+    command: [ "/bin/sh", "-lc", "chown -R 185:0 /opt/spark/work /opt/spark/logs && exec /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker --memory ${SPARK_WORKER_MEMORY:-2g} --cores ${SPARK_WORKER_CORES:-2} --webui-port 8081 spark://spark-master:7077" ]
     volumes:
       - spark_conf:/opt/spark/conf
       - spark_ivy:/opt/spark/.ivy2
@@ -101,14 +95,14 @@ services:
       - ./config/spark/core-site.xml:/opt/spark/conf/core-site.xml:ro
       - ./config/spark/hive-site.xml:/opt/spark/conf/hive-site.xml:ro
     healthcheck:
-      test: ["CMD-SHELL","curl -sf http://spark-master:8080/ > /dev/null"]
+      test: [ "CMD-SHELL", "curl -sf http://spark-master:8080/ > /dev/null" ]
       interval: 5s
       timeout: 3s
       retries: 30
 
   # Spark Worker 2
   spark-worker2:
-    image: flumendata/spark:${SPARK_VERSION:-4.0.1}-health
+    image: phbao/spark:${SPARK_VERSION:-4.0.1}-health
     container_name: flumen_spark_worker2
     restart: unless-stopped
     user: "0:0"
@@ -121,13 +115,7 @@ services:
     depends_on:
       spark-master:
         condition: service_healthy
-    command: ["/bin/sh","-lc",
-      "chown -R 185:0 /opt/spark/work /opt/spark/logs && \
-       exec /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker \
-       --memory ${SPARK_WORKER_MEMORY:-2g} \
-       --cores ${SPARK_WORKER_CORES:-2} \
-       --webui-port 8081 spark://spark-master:7077"
-    ]
+    command: [ "/bin/sh", "-lc", "chown -R 185:0 /opt/spark/work /opt/spark/logs && exec /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker --memory ${SPARK_WORKER_MEMORY:-2g} --cores ${SPARK_WORKER_CORES:-2} --webui-port 8081 spark://spark-master:7077" ]
     volumes:
       - spark_conf:/opt/spark/conf
       - spark_ivy:/opt/spark/.ivy2
@@ -138,7 +126,7 @@ services:
       - ./config/spark/core-site.xml:/opt/spark/conf/core-site.xml:ro
       - ./config/spark/hive-site.xml:/opt/spark/conf/hive-site.xml:ro
     healthcheck:
-      test: ["CMD-SHELL","curl -sf http://spark-master:8080/ > /dev/null"]
+      test: [ "CMD-SHELL", "curl -sf http://spark-master:8080/ > /dev/null" ]
       interval: 5s
       timeout: 3s
       retries: 30

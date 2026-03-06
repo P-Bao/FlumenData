@@ -119,8 +119,10 @@ def rebuild_images():
     print(f"{Colors.BLUE}Rebuilding custom Docker images...{Colors.RESET}\n")
 
     images = [
-        ("flumendata/hive:standalone-metastore-4.1.0", "docker/hive.Dockerfile"),
-        ("flumendata/spark:4.0.1-health", "docker/spark.Dockerfile"),
+        ("phbao/hive:standalone-metastore-4.1.0", "docker/hive.Dockerfile"),
+        ("phbao/spark:4.0.1-health", "docker/spark.Dockerfile"),
+        ("phbao/jupyterlab:spark-4.0.1", "docker/jupyterlab.Dockerfile"),
+        ("phbao/superset:5.0.0", "docker/superset.Dockerfile"),
     ]
 
     for image_name, dockerfile in images:

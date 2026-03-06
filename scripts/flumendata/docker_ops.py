@@ -30,13 +30,14 @@ def create_network():
         print(f"{Colors.GREEN}✓ Created network '{network_name}'{Colors.RESET}")
 
 
-def up_services(tier: int = None, services: list = None):
+def up_services(tier: int = None, services: list = None, build: bool = False):
     """
     Start services for specified tier and all tiers below it
 
     Args:
         tier: Tier number (0-3) or None for all tiers
         services: Optional list of specific services to start
+        build: Force build images before starting
     """
     load_env_file()
 
@@ -56,6 +57,9 @@ def up_services(tier: int = None, services: list = None):
         compose_files = get_compose_files(None)
 
     cmd = ["up", "-d"]
+
+    if build:
+        cmd.append("--build")
 
     if services:
         cmd.extend(services)
