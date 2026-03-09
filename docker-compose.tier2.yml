@@ -21,7 +21,7 @@ services:
     image: phbao/jupyterlab:spark-${SPARK_VERSION:-4.0.1}
     hostname: jupyterlab
     ports:
-      - "8888:8888"
+      - "8890:8888"
     environment:
       - JUPYTER_ENABLE_LAB=yes
       - JUPYTER_TOKEN=''
