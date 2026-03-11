@@ -30,7 +30,7 @@ def create_network():
         print(f"{Colors.GREEN}✓ Created network '{network_name}'{Colors.RESET}")
 
 
-def up_services(tier: int = None, services: list = None, build: bool = False):
+def up_services(tier: int = None, services: list = None, build: bool = True):
     """
     Start services for specified tier and all tiers below it
 

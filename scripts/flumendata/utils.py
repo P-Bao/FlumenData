@@ -91,7 +91,7 @@ def render_template(template_path: str, output_path: str, env_vars: Optional[Dic
     output_file = Path(output_path)
 
     if not template_file.exists():
-        print(f"{Colors.RED}[template] ✗ Template not found: {template_path}{Colors.RESET}")
+        print(f"{Colors.RED}[template] [ERROR] Template not found: {template_path}{Colors.RESET}")
         sys.exit(1)
 
     try:
@@ -117,7 +117,7 @@ def render_template(template_path: str, output_path: str, env_vars: Optional[Dic
         print(f"[template] {template_path} → {output_path}")
 
     except Exception as e:
-        print(f"{Colors.RED}[template] ✗ Failed to render {template_path}{Colors.RESET}")
+        print(f"{Colors.RED}[template] [ERROR] Failed to render {template_path}{Colors.RESET}")
         print(f"{Colors.RED}[template]   Error: {e}{Colors.RESET}")
         sys.exit(1)
 
@@ -145,12 +145,12 @@ def run_command(cmd: list, check: bool = True, capture_output: bool = False, **k
         )
         return result
     except subprocess.CalledProcessError as e:
-        print(f"{Colors.RED}✗ Command failed: {' '.join(cmd)}{Colors.RESET}")
+        print(f"{Colors.RED}[ERROR] Command failed: {' '.join(cmd)}{Colors.RESET}")
         if capture_output and e.stderr:
             print(f"{Colors.RED}{e.stderr}{Colors.RESET}")
         sys.exit(e.returncode)
     except FileNotFoundError:
-        print(f"{Colors.RED}✗ Command not found: {cmd[0]}{Colors.RESET}")
+        print(f"{Colors.RED}[ERROR] Command not found: {cmd[0]}{Colors.RESET}")
         print(f"{Colors.YELLOW}Make sure {cmd[0]} is installed and in your PATH{Colors.RESET}")
         sys.exit(1)
 
@@ -205,7 +205,7 @@ def wait_for_healthy(container_name: str, timeout: int = 180) -> bool:
             status = result.stdout.strip() if result.returncode == 0 else "starting"
 
             if status == "healthy":
-                print(f"\r{Colors.GREEN}[wait] {container_name} is healthy ✓{Colors.RESET}")
+                print(f"\r{Colors.GREEN}[wait] {container_name} is healthy [OK]{Colors.RESET}")
                 return True
 
             # Show progress dots
@@ -217,7 +217,7 @@ def wait_for_healthy(container_name: str, timeout: int = 180) -> bool:
 
         time.sleep(1)
 
-    print(f"\r{Colors.RED}[wait] ✗ Timeout: {container_name} is not healthy after {timeout}s{Colors.RESET}")
+    print(f"\r{Colors.RED}[wait] [ERROR] Timeout: {container_name} is not healthy after {timeout}s{Colors.RESET}")
     sys.exit(1)
 
 
@@ -232,11 +232,11 @@ def ensure_dir(path: Path, description: str = "") -> None:
     try:
         path.mkdir(parents=True, exist_ok=True)
         if description:
-            print(f"[init] ✓ {description}: {path}")
+            print(f"[init] [OK] {description}: {path}")
         else:
-            print(f"[init] ✓ Created: {path}")
+            print(f"[init] [OK] Created: {path}")
     except Exception as e:
-        print(f"{Colors.RED}[init] ✗ Failed to create {description}: {path}{Colors.RESET}")
+        print(f"{Colors.RED}[init] [ERROR] Failed to create {description}: {path}{Colors.RESET}")
         print(f"{Colors.RED}[init]   Error: {e}{Colors.RESET}")
         raise
 

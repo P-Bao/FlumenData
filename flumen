@@ -200,7 +200,7 @@ def handle_init(args):
     print(f"{Colors.YELLOW}Step 10/10: Environment Summary{Colors.RESET}")
     show_summary()
 
-    print(f"{Colors.GREEN}✓ FlumenData initialized successfully!{Colors.RESET}\n")
+    print(f"{Colors.GREEN}[OK] FlumenData initialized successfully!{Colors.RESET}\n")
     print(f"{Colors.GREEN}All services are running!{Colors.RESET}\n")
     print(f"{Colors.BLUE}Quick Commands:{Colors.RESET}")
     print(f"  • Check health: python3 flumen health")
@@ -374,7 +374,7 @@ def main():
         print(f"\n{Colors.YELLOW}Operation cancelled by user{Colors.RESET}")
         return 130
     except Exception as e:
-        print(f"{Colors.RED}✗ Error: {e}{Colors.RESET}")
+        print(f"{Colors.RED}[ERROR] Error: {e}{Colors.RESET}")
         import traceback
         traceback.print_exc()
         return 1
