@@ -1,0 +1,15 @@
+services:
+  upload-api:
+    build: ./api
+    container_name: flumen_upload_api
+    restart: unless-stopped
+
+    ports:
+      - "12397:12397"
+
+    networks:
+      - flumendata_default
+
+networks:
+  flumendata_default:
+    external: true
