@@ -46,6 +46,12 @@ def check_superset_health():
     wait_for_healthy("flumen_superset", timeout=180)
 
 
+def check_api_health():
+    """Check API health"""
+    # Specifically wait for flumen_upload_api
+    wait_for_healthy("flumen_upload_api", timeout=120)
+
+
 def check_tier_health(tier: int):
     """
     Check health of all services in a tier
@@ -79,6 +85,11 @@ def check_tier_health(tier: int):
         check_superset_health()
         print(f"{Colors.GREEN}✓ Tier 3 healthy{Colors.RESET}")
 
+    elif tier == "api":
+        print(f"{Colors.BLUE}Checking API Tier health...{Colors.RESET}")
+        check_api_health()
+        print(f"{Colors.GREEN}✓ API Tier healthy{Colors.RESET}")
+
 
 def check_all_health():
     """Check health of all services"""
@@ -87,5 +98,8 @@ def check_all_health():
     for tier in range(4):
         check_tier_health(tier)
         print()
+    
+    check_tier_health("api")
+    print()
 
     print(f"{Colors.GREEN}✓ All services healthy{Colors.RESET}")

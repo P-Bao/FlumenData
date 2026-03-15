@@ -89,7 +89,8 @@ def down_services():
     """Stop all services"""
     print(f"{Colors.YELLOW}Stopping all services...{Colors.RESET}")
 
-    # Stop in reverse order (tier 3 -> tier 0)
+    # Stop in reverse order (API -> tier 3 -> tier 0)
+    docker_compose("down", compose_files=["docker-compose.api.yml"], check=False)
     for tier in range(3, -1, -1):
         docker_compose("down", compose_files=[f"docker-compose.tier{tier}.yml"], check=False)
 
@@ -160,6 +161,9 @@ def show_summary():
     print(f"{Colors.YELLOW}Tier 3 - SQL & BI:{Colors.RESET}")
     print(f"  • Trino           → http://localhost:{trino_port}")
     print(f"  • Superset        → http://localhost:{superset_port}")
+    print()
+    print(f"{Colors.YELLOW}Internal API Services:{Colors.RESET}")
+    print("  • Data Upload API → http://localhost:12397")
     print()
     print(f"{Colors.YELLOW}Lakehouse Architecture:{Colors.RESET}")
     print("  • Catalog       : Hive Metastore (2-level: database.table)")

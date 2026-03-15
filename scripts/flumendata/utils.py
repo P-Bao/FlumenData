@@ -241,12 +241,12 @@ def ensure_dir(path: Path, description: str = "") -> None:
         raise
 
 
-def get_compose_files(tier: Optional[int] = None) -> list:
+def get_compose_files(tier: Optional[Any] = None) -> list:
     """
     Get list of docker-compose files for specified tier(s)
 
     Args:
-        tier: Tier number (0-3) or None for all tiers
+        tier: Tier number (0-3), "api", or None for all tiers
 
     Returns:
         List of compose file paths
@@ -254,16 +254,20 @@ def get_compose_files(tier: Optional[int] = None) -> list:
     files = []
 
     if tier is None:
-        # All tiers
+        # All tiers including API
         for t in range(4):
             files.append(f"docker-compose.tier{t}.yml")
-    elif tier == 0:
-        files.append("docker-compose.tier0.yml")
-    else:
-        # Include all tiers up to specified tier
-        for t in range(tier + 1):
-            files.append(f"docker-compose.tier{t}.yml")
-
+        files.append("docker-compose.api.yml")
+    elif tier == "api":
+        files.append("docker-compose.api.yml")
+    elif isinstance(tier, int):
+        if tier == 0:
+            files.append("docker-compose.tier0.yml")
+        else:
+            # Include all tiers up to specified tier
+            for t in range(tier + 1):
+                files.append(f"docker-compose.tier{t}.yml")
+    
     return files
 
 

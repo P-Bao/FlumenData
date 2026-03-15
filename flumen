@@ -73,7 +73,7 @@ For more information: https://github.com/FlumenData/FlumenData
 
     # ===== UP COMMAND =====
     up_parser = subparsers.add_parser('up', help='Start services')
-    up_parser.add_argument('--tier', '-t', type=int, choices=[0, 1, 2, 3], help='Tier to start (default: all)')
+    up_parser.add_argument('--tier', '-t', choices=['0', '1', '2', '3', 'api'], help='Tier to start (default: all)')
     up_parser.add_argument('--services', '-s', nargs='+', help='Specific services to start')
     up_parser.add_argument('--build', action='store_true', help='Force build Docker images')
 
@@ -85,7 +85,7 @@ For more information: https://github.com/FlumenData/FlumenData
 
     # ===== LOGS COMMAND =====
     logs_parser = subparsers.add_parser('logs', help='Show service logs')
-    logs_parser.add_argument('--tier', '-t', type=int, choices=[0, 1, 2, 3], help='Tier logs to show')
+    logs_parser.add_argument('--tier', '-t', choices=['0', '1', '2', '3', 'api'], help='Tier logs to show')
     logs_parser.add_argument('--service', '-s', help='Specific service logs')
     logs_parser.add_argument('--no-follow', action='store_true', help='Don\'t follow log output')
 
@@ -95,7 +95,7 @@ For more information: https://github.com/FlumenData/FlumenData
 
     # ===== HEALTH COMMAND =====
     health_parser = subparsers.add_parser('health', help='Check service health')
-    health_parser.add_argument('--tier', '-t', type=int, choices=[0, 1, 2, 3], help='Tier to check (default: all)')
+    health_parser.add_argument('--tier', '-t', choices=['0', '1', '2', '3', 'api'], help='Tier to check (default: all)')
 
     # ===== SUMMARY COMMAND =====
     subparsers.add_parser('summary', help='Show environment summary')
@@ -192,12 +192,17 @@ def handle_init(args):
     print()
 
     # Step 9: Check Tier 3 health
-    print(f"{Colors.YELLOW}Step 9/10: Checking Tier 3 (BI & SQL){Colors.RESET}")
+    print(f"{Colors.YELLOW}Step 9/11: Checking Tier 3 (BI & SQL){Colors.RESET}")
     check_tier_health(3)
     print()
 
-    # Step 10: Summary
-    print(f"{Colors.YELLOW}Step 10/10: Environment Summary{Colors.RESET}")
+    # Step 10: Start API Tier
+    print(f"{Colors.YELLOW}Step 10/11: Initializing API Tier{Colors.RESET}")
+    check_tier_health("api")
+    print()
+
+    # Step 11: Summary
+    print(f"{Colors.YELLOW}Step 11/11: Environment Summary{Colors.RESET}")
     show_summary()
 
     print(f"{Colors.GREEN}[OK] FlumenData initialized successfully!{Colors.RESET}\n")
@@ -288,7 +293,10 @@ def main():
             generator()
 
         elif args.command == 'up':
-            up_services(tier=args.tier, services=args.services, build=args.build)
+            tier = args.tier
+            if tier and tier.isdigit():
+                tier = int(tier)
+            up_services(tier=tier, services=args.services, build=args.build)
 
         elif args.command == 'down':
             down_services()
@@ -297,14 +305,20 @@ def main():
             restart_services()
 
         elif args.command == 'logs':
-            show_logs(tier=args.tier, service=args.service, follow=not args.no_follow)
+            tier = args.tier
+            if tier and tier.isdigit():
+                tier = int(tier)
+            show_logs(tier=tier, service=args.service, follow=not args.no_follow)
 
         elif args.command in ['ps', 'status']:
             show_status()
 
         elif args.command == 'health':
-            if args.tier is not None:
-                check_tier_health(args.tier)
+            tier = args.tier
+            if tier and tier.isdigit():
+                tier = int(tier)
+            if tier is not None:
+                check_tier_health(tier)
             else:
                 check_all_health()
 
