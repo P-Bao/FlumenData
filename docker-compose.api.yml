@@ -1,7 +1,7 @@
 services:
   upload-api:
     build: ./api
-    container_name: flumen_upload_api
+    container_name: flumen_api
     restart: unless-stopped
 
     ports:

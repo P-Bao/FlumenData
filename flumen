@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).parent / "scripts"))
 from flumendata import __version__
 from flumendata.utils import Colors, print_banner, load_env_file
 from flumendata.config import SERVICE_GENERATORS
-from flumendata.init import init_data_dirs, init_minio, init_hive
+from flumendata.init import init_data_dirs, init_minio, init_hive, init_dashboard
 from flumendata.docker_ops import (
     up_services, down_services, restart_services,
     show_logs, show_status, show_summary
@@ -130,6 +130,12 @@ For more information: https://github.com/FlumenData/FlumenData
     subparsers.add_parser('rebuild', help='Rebuild all custom Docker images')
     subparsers.add_parser('prune', help='Prune unused Docker resources')
 
+    # ===== DASHBOARD COMMANDS =====
+    subparsers.add_parser('dashboard-setup', help='Quick dashboard DB setup')
+    subparsers.add_parser('dashboard-collect', help='Run one-time metrics collection')
+    subparsers.add_parser('dashboard-status', help='Show dashboard & collector status')
+    subparsers.add_parser('dashboard-init', help='Full dashboard initialization')
+
     # ===== HELP COMMAND =====
     subparsers.add_parser('help', help='Show help message')
 
@@ -197,12 +203,17 @@ def handle_init(args):
     print()
 
     # Step 10: Start API Tier
-    print(f"{Colors.YELLOW}Step 10/11: Initializing API Tier{Colors.RESET}")
+    print(f"{Colors.YELLOW}Step 10/12: Initializing API Tier{Colors.RESET}")
     check_tier_health("api")
     print()
 
-    # Step 11: Summary
-    print(f"{Colors.YELLOW}Step 11/11: Environment Summary{Colors.RESET}")
+    # Step 11: Initialize Dashboard
+    print(f"{Colors.YELLOW}Step 11/12: Initializing Dashboard & Metrics{Colors.RESET}")
+    init_dashboard()
+    print()
+
+    # Step 12: Summary
+    print(f"{Colors.YELLOW}Step 12/12: Environment Summary{Colors.RESET}")
     show_summary()
 
     print(f"{Colors.GREEN}[OK] FlumenData initialized successfully!{Colors.RESET}\n")
@@ -377,6 +388,23 @@ def main():
 
         elif args.command == 'prune':
             prune_docker()
+
+        # Dashboard commands
+        elif args.command == 'dashboard-setup':
+            load_env_file()
+            init_dashboard() # Reuses init_dashboard for quick setup
+        
+        elif args.command == 'dashboard-collect':
+            from flumendata.docker_ops import run_dashboard_collect
+            run_dashboard_collect()
+
+        elif args.command == 'dashboard-status':
+            from flumendata.docker_ops import show_dashboard_status
+            show_dashboard_status()
+
+        elif args.command == 'dashboard-init':
+            load_env_file()
+            init_dashboard()
 
         else:
             parser.print_help()

@@ -38,7 +38,12 @@ python3 flumen summary
 FlumenData implementa uma arquitetura lakehouse moderna com:
 
 ```mermaid
-graph TD
+    subgraph Dashboard
+        COLLECTOR[Coletor de Métricas]
+    end
+    subgraph API
+        API_SVC[API de Upload de Dados]
+    end
     subgraph Tier0
         MINIO[MinIO S3]
         POSTGRES[PostgreSQL]
@@ -56,6 +61,9 @@ graph TD
         SUPERSET[Superset]
     end
 
+    API_SVC --> MINIO
+    COLLECTOR --> SPARK
+    COLLECTOR --> POSTGRES
     MINIO --> DELTA
     POSTGRES --> HIVE
     HIVE --> SPARK
@@ -85,6 +93,10 @@ graph TD
 **Camada de SQL & BI:**
 - **Trino** - Gateway SQL distribuído sobre o lakehouse
 - **Apache Superset** - Dashboards, gráficos e SQL Lab
+
+**Camada de Dashboard & API:**
+- **Coletor de Métricas** - monitoramento automatizado e coleta de métricas
+- **API de Upload de Dados** - Ponto de ingestão seguro para dados brutos
 
 ## Estrutura do Projeto
 
@@ -131,6 +143,14 @@ graph TD
 
 - [**Apache Superset 5.0.0**](services/superset.md) – Dashboards e SQL Lab
   Imagem customizada: `flumendata/superset:5.0.0`
+
+### Serviços Adicionais
+
+- **Coletor de Métricas** – Monitoramento de saúde e métricas do sistema
+  Imagem: `python:3.13-slim`
+
+- **API de Upload de Dados** – Serviço de ingestão baseado em FastAPI
+  Imagem customizada: `flumendata-upload-api`
 
 ## Recursos Principais
 
@@ -206,6 +226,13 @@ python3 flumen shell-spark       # Abrir shell do Spark
 python3 flumen shell-pyspark     # Abrir shell do PySpark
 python3 flumen shell-spark-sql   # Abrir shell do Spark SQL
 python3 flumen shell-mc                # Abrir cliente MinIO
+```
+
+### Dashboard & Métricas
+```bash
+python3 flumen dashboard-collect   # Executar coleta de métricas
+python3 flumen dashboard-setup     # Inicializar views de métricas
+python3 flumen dashboard-status    # Verificar o status do coletor
 ```
 
 ### Manutenção

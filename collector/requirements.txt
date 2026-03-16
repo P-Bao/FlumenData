@@ -1,0 +1,6 @@
+minio
+psycopg2-binary
+requests
+apscheduler
+pyspark
+delta-spark

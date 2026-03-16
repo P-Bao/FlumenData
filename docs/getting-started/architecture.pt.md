@@ -6,6 +6,14 @@ O FlumenData implementa uma arquitetura lakehouse moderna que combina o melhor d
 
 ```mermaid
 graph TB
+    subgraph "Camada de API Interna"
+        API[API de Upload de Dados<br/>FastAPI]
+    end
+
+    subgraph "Camada de Dashboard"
+        COLLECTOR[Coletor de Métricas<br/>Python]
+    end
+
     subgraph "Tier 1 - Data Platform"
         SPARK[Apache Spark 4.0.1<br/>Master + 2 Workers]
         HIVE[Hive Metastore 4.1.0<br/>Catalog Service]
@@ -20,6 +28,10 @@ graph TB
         DELTA[Delta Lake 4.0<br/>ACID Tables]
     end
 
+    API --> MINIO
+    COLLECTOR --> SPARK
+    COLLECTOR --> POSTGRES
+    COLLECTOR --> MINIO
     SPARK --> HIVE
     SPARK --> DELTA
     DELTA --> MINIO

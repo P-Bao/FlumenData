@@ -48,6 +48,9 @@ plugins:
         - locale: pt
           name: Português
           build: true
+        - locale: vi
+          name: Tiếng Việt
+          build: true
       nav_translations:
         pt:
           Home: Início
@@ -67,11 +70,36 @@ plugins:
           Installation: Instalação
           Quick Start: Início Rápido
           Architecture: Arquitetura
+          Medallion Architecture: Arquitetura Medallion
           Configuration: Configuração
           Environment Variables: Variáveis de Ambiente
           CLI Reference: Referência CLI
           Development: Desenvolvimento
           Testing: Testes
+        vi:
+          Home: Trang chủ
+          Services: Dịch vụ
+          Tier 0 - Foundation: Tầng 0 - Nền tảng
+          Tier 1 - Data Platform: Tầng 1 - Nền tảng Dữ liệu
+          Tier 2 - Analytics & Development: Tầng 2 - Phân tích & Phát triển
+          Tier 3 - SQL & BI: Tầng 3 - SQL & BI
+          PostgreSQL: PostgreSQL
+          MinIO: MinIO
+          Hive Metastore: Hive Metastore
+          Apache Spark: Apache Spark
+          JupyterLab: JupyterLab
+          Superset: Superset
+          Trino: Trino
+          Getting Started: Bắt đầu
+          Installation: Cài đặt
+          Quick Start: Bắt đầu nhanh
+          Architecture: Kiến trúc
+          Medallion Architecture: Kiến trúc Medallion
+          Configuration: Cấu hình
+          Environment Variables: Biến môi trường
+          CLI Reference: Tài liệu lệnh CLI
+          Development: Phát triển
+          Testing: Kiểm thử
 
 markdown_extensions:
   - admonition
@@ -123,6 +151,7 @@ nav:
       - Installation: getting-started/installation.md
       - Quick Start: getting-started/quickstart.md
       - Architecture: getting-started/architecture.md
+      - Medallion Architecture: getting-started/medallion.md
   - Services:
       - Tier 0 - Foundation:
           - PostgreSQL: services/postgres.md

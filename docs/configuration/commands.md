@@ -12,6 +12,7 @@ python3 flumen summary           # Display environment overview
 python3 flumen logs              # View logs for all services
 python3 flumen restart           # Restart all services
 python3 flumen clean             # Stop and remove everything (DESTRUCTIVE)
+python3 flumen dashboard-collect # Run metrics collection
 ```
 
 ## Installation & Prerequisites
@@ -408,6 +409,32 @@ Initialize Superset database.
 **Usage:**
 ```bash
 python3 flumen superset-db
+```
+
+## Dashboard & Metrics Commands
+
+### `python3 flumen dashboard-collect`
+Run one-time metrics collection from MinIO, Spark, and Delta Lake.
+
+**Usage:**
+```bash
+python3 flumen dashboard-collect
+```
+
+### `python3 flumen dashboard-setup`
+One-time setup for the metrics database and Trino views.
+
+**Usage:**
+```bash
+python3 flumen dashboard-setup
+```
+
+### `python3 flumen dashboard-status`
+Show the status of the metrics collector.
+
+**Usage:**
+```bash
+python3 flumen dashboard-status
 ```
 
 ## Cleanup & Maintenance Commands

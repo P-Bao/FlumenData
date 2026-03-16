@@ -140,3 +140,73 @@ def init_superset():
         print(f"{Colors.YELLOW}[superset:init] Database creation status: {result.stderr.strip()}{Colors.RESET}")
 
     return 0
+
+
+def init_dashboard():
+    """Initialize Dashboard metrics database and Trino views."""
+    from .utils import run_command
+    import subprocess
+    import time
+
+    print("[dashboard:init] Initializing Dashboard & Metrics...")
+
+    env_vars = load_env_file()
+    postgres_user = env_vars.get("POSTGRES_USER", "flumen")
+    postgres_password = env_vars.get("POSTGRES_PASSWORD", "flumen_pass")
+    metrics_db_name = env_vars.get("METRICS_DB_NAME", "metrics_db")
+    postgres_port = env_vars.get("POSTGRES_PORT", "5432")
+
+    # 1. Create metrics_db
+    print(f"[dashboard:init] 1/3 Creating database '{metrics_db_name}'...")
+    create_db_cmd = [
+        "docker", "exec", "flumen_postgres",
+        "psql", "-U", postgres_user, "-d", "postgres", "-c",
+        f"CREATE DATABASE {metrics_db_name};"
+    ]
+    subprocess.run(create_db_cmd, capture_output=True, env={**os.environ, "PGPASSWORD": postgres_password})
+
+    # 2. Run schema SQL
+    print("[dashboard:init] 2/3 Applying schema SQL...")
+    sql_file = Path("sql/01_create_metrics_db.sql")
+    if sql_file.exists():
+        with open(sql_file, "r", encoding="utf-8") as f:
+            sql_content = f.read()
+        
+        apply_sql_cmd = [
+            "docker", "exec", "-i", "flumen_postgres",
+            "psql", "-U", postgres_user, "-d", metrics_db_name
+        ]
+        subprocess.run(apply_sql_cmd, input=sql_content, text=True, env={**os.environ, "PGPASSWORD": postgres_password})
+    else:
+        print(f"{Colors.YELLOW}[dashboard:init] WARNING: sql/01_create_metrics_db.sql not found{Colors.RESET}")
+
+    # 3. Configure Trino & Views
+    print("[dashboard:init] 3/3 Configuring Trino catalog and views...")
+    trino_config = f"""connector.name=postgresql
+connection-url=jdbc:postgresql://postgres:{postgres_port}/{metrics_db_name}
+connection-user={postgres_user}
+connection-password={postgres_password}
+"""
+    try:
+        subprocess.run(["docker", "exec", "flumen_trino", "mkdir", "-p", "/etc/trino/catalog"])
+        subprocess.run(["docker", "-i", "exec", "flumen_trino", "tee", "/etc/trino/catalog/metrics.properties"], 
+                       input=trino_config, text=True)
+        
+        print("[dashboard:init] Restarting Trino to apply catalog...")
+        subprocess.run(["docker", "restart", "flumen_trino"])
+        
+        print("[dashboard:init] Waiting for Trino to restart (10s)...")
+        time.sleep(10)
+        
+        views_file = Path("sql/02_trino_views.sql")
+        if views_file.exists():
+            with open(views_file, "r", encoding="utf-8") as f:
+                views_sql = f.read()
+            subprocess.run(["docker", "exec", "-i", "flumen_trino", "trino", "--server", "localhost:8080"], 
+                           input=views_sql, text=True)
+            print(f"{Colors.GREEN}[dashboard:init] Trino views created{Colors.RESET}")
+    except Exception as e:
+        print(f"{Colors.YELLOW}[dashboard:init] Trino configuration failed: {e}{Colors.RESET}")
+
+    print(f"{Colors.GREEN}[dashboard:init] Dashboard initialized{Colors.RESET}")
+    return 0

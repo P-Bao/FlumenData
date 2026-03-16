@@ -58,6 +58,14 @@
 
 ```mermaid
 graph TB
+    subgraph "Camada de API Interna"
+        API[API de Upload de Dados<br/>FastAPI & Metrics]
+    end
+
+    subgraph "Camada de Dashboard"
+        COLLECTOR[Coletor de Métricas<br/>Python & PySpark]
+    end
+
     subgraph "Tier 3 - SQL & BI"
         TRINO[Trino<br/>Motor SQL Distribuído]
         SUPERSET[Superset<br/>Dashboards de BI]
@@ -78,6 +86,11 @@ graph TB
         MINIO[MinIO<br/>Armazenamento de Objetos S3]
     end
 
+    API --> MINIO
+    API --> TRINO
+    COLLECTOR --> MINIO
+    COLLECTOR --> SPARK
+    COLLECTOR --> POSTGRES
     SUPERSET --> TRINO
     TRINO --> HIVE
     TRINO --> MINIO
@@ -101,6 +114,8 @@ graph TB
 | **Analytics** | JupyterLab | Latest | Workspace PySpark |
 | **SQL** | Trino | 450 | Consultas SQL distribuídas |
 | **BI** | Superset | 5.0.0 | Análises visuais e dashboards |
+| **Coletor** | Python | 3.13 | Coleta de métricas e metadados |
+| **API** | FastAPI | latest | Ingestão de dados e acesso a métricas |
 
 ---
 
@@ -177,6 +192,10 @@ make shell-mc        # Abrir shell do cliente MinIO
 # Manutenção
 make clean           # Parar serviços e remover volumes (⚠️ deleta dados)
 make rebuild         # Reconstruir todas as imagens customizadas
+
+# Dashboard & Métricas
+make dashboard-collect   # Executar coleta de métricas (uma vez)
+make dashboard-status    # Verificar o status do coletor
 ```
 
 > **📖 Referência completa de comandos:** [docs/configuration/commands.pt.md](docs/configuration/commands.pt.md)

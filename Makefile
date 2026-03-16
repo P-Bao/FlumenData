@@ -132,6 +132,8 @@ cli-help: ## Show Python CLI help
 version: ## Show version
 	@$(CLI) --version
 
+include Makefile.dashboard
+
 # Catch-all: forward any unknown target to Python CLI
 %:
 	@$(CLI) $@

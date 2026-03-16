@@ -15,6 +15,7 @@
     **Tier 0 is validated**: PostgreSQL and MinIO expose healthchecks, named volumes, and generated config under `/config`.
     **Tier 1 is operational**: Apache Spark 4.0.1, Hive Metastore 4.1.0, and Delta Lake 4.0 are deployed and tested.
     **Tier 2 & Tier 3 are live**: JupyterLab, Trino, and Superset are ready for demos.
+    **Dashboard & API**: Metrics collector and Data Upload API are available.
 
 ## Quickstart
 
@@ -38,7 +39,12 @@ make summary
 FlumenData implements a modern lakehouse architecture with:
 
 ```mermaid
-graph TD
+    subgraph Dashboard
+        COLLECTOR[Metrics Collector]
+    end
+    subgraph API
+        API_SVC[Data Upload API]
+    end
     subgraph Tier0
         MINIO[MinIO S3]
         POSTGRES[PostgreSQL]
@@ -56,6 +62,9 @@ graph TD
         SUPERSET[Superset]
     end
 
+    API_SVC --> MINIO
+    COLLECTOR --> SPARK
+    COLLECTOR --> POSTGRES
     MINIO --> DELTA
     POSTGRES --> HIVE
     HIVE --> SPARK
@@ -85,6 +94,10 @@ graph TD
 **SQL & BI Layer:**
 - **Trino** - Distributed SQL gateway across the lakehouse
 - **Apache Superset** - Dashboards, charts, and SQL Lab
+
+**Dashboard & API Layer:**
+- **Metrics Collector** - automated monitoring and metrics gathering
+- **Data Upload API** - Secure ingestion point for raw data
 
 ## Project Structure
 
@@ -131,6 +144,14 @@ graph TD
 
 - [**Apache Superset 5.0.0**](services/superset.md) – BI dashboards & charts
   Custom image: `flumendata/superset:5.0.0`
+
+### Additional Services
+
+- **Metrics Collector** – System health and metrics monitoring
+  Image: `python:3.13-slim`
+
+- **Data Upload API** – FastAPI-based ingestion service
+  Custom image: `flumendata-upload-api`
 
 ## Key Features
 
@@ -206,6 +227,13 @@ make shell-spark       # Open Spark shell
 make shell-pyspark     # Open PySpark shell
 make shell-spark-sql   # Open Spark SQL shell
 make mc                # Open MinIO client
+```
+
+### Dashboard & Metrics
+```bash
+make dashboard-collect   # Run metrics collection
+make dashboard-setup     # Initialize metrics views
+make dashboard-status    # Check collector status
 ```
 
 ### Maintenance

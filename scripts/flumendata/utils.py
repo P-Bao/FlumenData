@@ -258,6 +258,7 @@ def get_compose_files(tier: Optional[Any] = None) -> list:
         for t in range(4):
             files.append(f"docker-compose.tier{t}.yml")
         files.append("docker-compose.api.yml")
+        files.append("docker-compose.dashboard.yml")
     elif tier == "api":
         files.append("docker-compose.api.yml")
     elif isinstance(tier, int):

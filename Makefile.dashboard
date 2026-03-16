@@ -1,0 +1,112 @@
+# Makefile.dashboard
+# Thêm vào FlumenData bằng: include Makefile.dashboard
+# Hoặc chạy độc lập:        make -f Makefile.dashboard <target>
+
+include .env
+export
+
+.PHONY: dashboard-setup dashboard-trino-config dashboard-views \
+        dashboard-start dashboard-stop dashboard-collect \
+        dashboard-logs dashboard-status dashboard-init dashboard-mkdir
+
+POSTGRES_CONTAINER  = $(shell docker ps -qf "name=postgres" | head -1)
+TRINO_CONTAINER     = $(shell docker ps -qf "name=trino" | head -1)
+COLLECTOR_CONTAINER = $(shell docker ps -qf "name=flumen_collector" \
+                     | head -1 || docker ps -qf "name=collector" | head -1)
+COMPOSE_DASHBOARD  = docker compose \
+    -f docker-compose.tier0.yml \
+    -f docker-compose.tier1.yml \
+    -f docker-compose.dashboard.yml
+
+# ── Tạo thư mục DATA_DIR/metrics_db trên host ───────────────
+dashboard-mkdir:
+	@echo "📁 Creating $(DATA_DIR)/metrics_db ..."
+	mkdir -p $(DATA_DIR)/metrics_db
+	@echo "✅ $(DATA_DIR)/metrics_db ready"
+
+# ── Phase 0: Tạo metrics_db schema ──────────────────────────
+dashboard-setup: dashboard-mkdir dashboard-trino-config
+	@echo "🗄️  Creating $(METRICS_DB_NAME) schema..."
+	docker exec -i $(POSTGRES_CONTAINER) \
+		psql -U $(POSTGRES_USER) -d postgres \
+		-c "CREATE DATABASE $(METRICS_DB_NAME);" 2>/dev/null || true
+	docker exec -i $(POSTGRES_CONTAINER) \
+		psql -U $(POSTGRES_USER) -d $(METRICS_DB_NAME) \
+		< sql/01_create_metrics_db.sql
+	@echo "✅ Schema applied to $(METRICS_DB_NAME)"
+
+# ── Cấu hình Trino catalog → metrics_db ─────────────────────
+dashboard-trino-config:
+	@echo "🔌 Configuring Trino metrics catalog..."
+	docker exec $(TRINO_CONTAINER) mkdir -p /etc/trino/catalog
+	@printf 'connector.name=postgresql\n\
+connection-url=jdbc:postgresql://postgres:$(POSTGRES_PORT)/$(METRICS_DB_NAME)\n\
+connection-user=$(POSTGRES_USER)\n\
+connection-password=$(POSTGRES_PASSWORD)\n' \
+	| docker exec -i $(TRINO_CONTAINER) \
+		tee /etc/trino/catalog/metrics.properties > /dev/null
+	docker restart $(TRINO_CONTAINER)
+	@echo "✅ Trino metrics catalog configured — Trino restarting..."
+
+# ── Tạo Trino views ──────────────────────────────────────────
+dashboard-views:
+	@echo "🔺 Creating Trino views..."
+	@sleep 5  # đợi Trino restart nếu vừa chạy dashboard-trino-config
+	docker exec -i $(TRINO_CONTAINER) \
+		trino --server localhost:8080 < sql/02_trino_views.sql
+	@echo "✅ Views created"
+
+# ── Start collector ──────────────────────────────────────────
+dashboard-start:
+	@echo "🚀 Starting flumen_collector..."
+	$(COMPOSE_DASHBOARD) up -d collector
+	@echo "✅ Collector started — logs: make dashboard-logs"
+
+# ── Stop collector ───────────────────────────────────────────
+dashboard-stop:
+	$(COMPOSE_DASHBOARD) stop collector
+
+# ── Thu thập metrics ngay (1 lần) ───────────────────────────
+dashboard-collect:
+	@echo "📊 Running one-time collection..."
+	docker exec $(COLLECTOR_CONTAINER) \
+		python /app/collector/metrics_collector.py --once
+
+# ── Logs realtime ────────────────────────────────────────────
+dashboard-logs:
+	docker logs -f $(COLLECTOR_CONTAINER)
+
+# ── Trạng thái + snapshot mới nhất ──────────────────────────
+dashboard-status:
+	@echo "=== Collector ==="
+	@docker ps -f "name=collector" \
+		--format "table {{.Names}}\t{{.Status}}\t{{.RunningFor}}"
+	@echo ""
+	@echo "=== DATA_DIR ==="
+	@echo "  Host path : $(DATA_DIR)/metrics_db"
+	@du -sh $(DATA_DIR)/metrics_db 2>/dev/null || echo "  (not created yet)"
+	@echo ""
+	@echo "=== Latest storage snapshot ==="
+	@docker exec $(POSTGRES_CONTAINER) \
+		psql -U $(POSTGRES_USER) -d $(METRICS_DB_NAME) -c \
+		"SELECT layer, file_count, \
+		        ROUND(size_bytes::numeric/1e9,2) AS size_gb, \
+		        small_file_count, \
+		        TO_CHAR(captured_at,'YYYY-MM-DD HH24:MI') AS at \
+		 FROM storage_snapshots \
+		 ORDER BY captured_at DESC LIMIT 8;" 2>/dev/null \
+		|| echo "  (no data yet — run: make dashboard-collect)"
+
+# ── Full init (chạy 1 lần sau clone) ────────────────────────
+dashboard-init: dashboard-setup dashboard-trino-config dashboard-views dashboard-start
+	@echo ""
+	@echo "══════════════════════════════════════════════════════"
+	@echo "  ✅ FlumenData Dashboard initialized!"
+	@echo ""
+	@echo "  Data dir : $(DATA_DIR)/metrics_db"
+	@echo "  Superset : http://localhost:$(SUPERSET_PORT)"
+	@echo "  Trino    : http://localhost:$(TRINO_PORT)"
+	@echo ""
+	@echo "  Superset → Add Database connection:"
+	@echo "  trino://trino@trino:8080/hive/public"
+	@echo "══════════════════════════════════════════════════════"

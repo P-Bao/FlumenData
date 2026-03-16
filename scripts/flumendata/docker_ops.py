@@ -164,6 +164,7 @@ def show_summary():
     print()
     print(f"{Colors.YELLOW}Internal API Services:{Colors.RESET}")
     print("  • Data Upload API → http://localhost:12397")
+    print("  • Dashboard Metrics → Accessible via Superset")
     print()
     print(f"{Colors.YELLOW}Lakehouse Architecture:{Colors.RESET}")
     print("  • Catalog       : Hive Metastore (2-level: database.table)")
@@ -177,6 +178,7 @@ def show_summary():
     print("  python3 flumen logs          - View all logs")
     print("  python3 flumen health        - Check all health")
     print("  python3 flumen ps            - Show container status")
+    print("  python3 flumen dashboard-status - Show metrics status")
     print()
     print(f"{Colors.RED}⚠️  FIRST-TIME USERS - IMPORTANT:{Colors.RESET}")
     print(f"{Colors.YELLOW}When you run the quickstart notebook for the FIRST time,{Colors.RESET}")
@@ -185,3 +187,34 @@ def show_summary():
     print()
     print(f"{Colors.GREEN}📓 Try it now: http://localhost:8888 → _examples/01_quickstart.ipynb{Colors.RESET}")
     print()
+
+
+def run_dashboard_collect():
+    """Run one-time metrics collection in the collector container"""
+    print(f"{Colors.BLUE}[dashboard] Running one-time metrics collection...{Colors.RESET}")
+    result = subprocess.run(
+        ["docker", "ps", "--filter", "name=collector", "--format", "{{.Names}}"],
+        capture_output=True, text=True
+    )
+    container_name = result.stdout.strip().split('\n')[0] if result.stdout.strip() else "flumen_collector"
+    
+    subprocess.run(["docker", "exec", container_name, "python", "/app/collector/metrics_collector.py", "--once"])
+    print(f"{Colors.GREEN}✓ Metrics collection completed{Colors.RESET}")
+
+
+def show_dashboard_status():
+    """Show dashboard and metrics status"""
+    print(f"\n{Colors.BLUE}=== Dashboard & Metrics Status ==={Colors.RESET}")
+    subprocess.run(["docker", "ps", "-f", "name=collector", "--format", "table {{.Names}}\t{{.Status}}\t{{.RunningFor}}"])
+    
+    env_vars = load_env_file()
+    postgres_user = env_vars.get("POSTGRES_USER", "flumen")
+    postgres_password = env_vars.get("POSTGRES_PASSWORD", "flumen_pass")
+    metrics_db_name = env_vars.get("METRICS_DB_NAME", "metrics_db")
+    
+    print(f"\n{Colors.YELLOW}Latest storage snapshots:{Colors.RESET}")
+    query = "SELECT layer, file_count, ROUND(size_bytes::numeric/1e9,2) AS size_gb, TO_CHAR(captured_at,'YYYY-MM-DD HH24:MI') AS at FROM storage_snapshots ORDER BY captured_at DESC LIMIT 5;"
+    subprocess.run(
+        ["docker", "exec", "flumen_postgres", "psql", "-U", postgres_user, "-d", metrics_db_name, "-c", query],
+        env={**os.environ, "PGPASSWORD": postgres_password}
+    )

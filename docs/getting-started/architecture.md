@@ -6,6 +6,14 @@ FlumenData implements a modern lakehouse architecture that combines the best fea
 
 ```mermaid
 graph TB
+    subgraph "Internal API Tier"
+        API[Data Upload API<br/>FastAPI]
+    end
+
+    subgraph "Dashboard Tier"
+        COLLECTOR[Metrics Collector<br/>Python]
+    end
+
     subgraph "Tier 1 - Data Platform"
         SPARK[Apache Spark 4.0.1<br/>Master + 2 Workers]
         HIVE[Hive Metastore 4.1.0<br/>Catalog Service]
@@ -20,6 +28,10 @@ graph TB
         DELTA[Delta Lake 4.0<br/>ACID Tables]
     end
 
+    API --> MINIO
+    COLLECTOR --> SPARK
+    COLLECTOR --> POSTGRES
+    COLLECTOR --> MINIO
     SPARK --> HIVE
     SPARK --> DELTA
     DELTA --> MINIO
@@ -233,6 +245,16 @@ trino:         # Distributed SQL engine
 superset:      # BI dashboards
 ```
 
+**Dashboard & Metrics:**
+```yaml
+collector:     # Metrics gathering service
+```
+
+**Internal API:**
+```yaml
+upload-api:    # Data ingestion & metrics API
+```
+
 ### Startup Dependencies
 
 ```mermaid
@@ -285,6 +307,7 @@ All services run on the same Docker network (`tier0_network` and `tier1_network`
 | JupyterLab | 8888 | 8888 | HTTP |
 | Trino | ${TRINO_PORT:-8082} | 8080 | HTTP |
 | Superset | ${SUPERSET_PORT:-8088} | 8088 | HTTP |
+| Data Upload API | 12397 | 12397 | HTTP |
 
 ## Storage Architecture
 

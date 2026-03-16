@@ -1,0 +1,77 @@
+services:
+
+  # ── Override postgres: mount thêm volume metrics_db ─────────
+  # Extend service gốc từ tier0 để lưu metrics_db vào DATA_DIR
+  # mà không cần sửa file docker-compose gốc.
+  postgres:
+    volumes:
+      - ${DATA_DIR}/metrics_db:/var/lib/postgresql/metrics_db
+    networks:
+      - metrics_net
+
+  minio:
+    networks:
+      - metrics_net
+
+  # ── Metrics Collector ────────────────────────────────────────
+  collector:
+    image: python:3.13-slim
+    container_name: flumen_collector
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      # MinIO — map sang tên biến collector dùng nội bộ
+      MINIO_ENDPOINT: ${MINIO_SERVER_URL} # http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER} # minioadmin
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD} # minioadmin123
+      MINIO_SECURE: "false"
+      MINIO_BUCKET: ${MINIO_BUCKET} # lakehouse
+
+      # Spark REST API
+      SPARK_MASTER_URL: ${SPARK_MASTER_URL} # http://spark-master:8080
+
+      # PostgreSQL — dùng thẳng tên biến gốc FlumenData
+      PG_HOST: postgres
+      PG_PORT: ${POSTGRES_PORT}
+      PG_USER: ${POSTGRES_USER}
+      PG_PASSWORD: ${POSTGRES_PASSWORD}
+      PG_DATABASE: ${METRICS_DB_NAME}
+
+      # Collector settings
+      COLLECTOR_INTERVAL_SEC: ${COLLECTOR_INTERVAL_SEC:-900}
+      SMALL_FILE_THRESHOLD_BYTES: ${SMALL_FILE_THRESHOLD_BYTES:-134217728}
+      LAYER_BRONZE_PATTERNS: ${LAYER_BRONZE_PATTERNS:-bronze,raw}
+      LAYER_SILVER_PATTERNS: ${LAYER_SILVER_PATTERNS:-silver,curated}
+      LAYER_GOLD_PATTERNS: ${LAYER_GOLD_PATTERNS:-gold,serving}
+    volumes:
+      - ./collector:/app/collector:ro
+      - ./sql:/app/sql:ro
+      - ${DATA_DIR}:/data:ro
+    working_dir: /app
+    command: >
+      bash -c "
+        apt update -y && apt install -y default-jre-headless &&
+        pip install -r collector/requirements.txt -q &&
+        python collector/metrics_collector.py --schedule
+      "
+    networks:
+      - metrics_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - "CMD"
+        - "python"
+        - "-c"
+        - "import os,psycopg2; psycopg2.connect(host='postgres',port=os.environ['PG_PORT'],user=os.environ['PG_USER'],password=os.environ['PG_PASSWORD'],dbname=os.environ['PG_DATABASE'])"
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  metrics_net:
+    external: true
+    name: flumendata_default

@@ -1,0 +1,192 @@
+{
+  "dashboard_title": "FlumenData Lakehouse Dashboard",
+  "description": "Monitoring dashboard for FlumenData — file stats, pipeline health, Delta Lake metrics",
+  "css": "",
+  "slug": "flumendata-lakehouse",
+  "metadata": {
+    "refresh_frequency": 300,
+    "color_scheme": "supersetColors",
+    "expanded_slices": {},
+    "default_filters": "{}"
+  },
+  "_comment": "Import via: Superset → Dashboards → Import → chọn file này",
+  "_datasource_instructions": [
+    "1. Thêm database connection trong Superset:",
+    "   Settings → Database Connections → + Database",
+    "   Display Name: FlumenData Metrics (Trino)",
+    "   SQLAlchemy URI: trino://trino@localhost:8082/metrics/public",
+    "",
+    "2. Tạo datasets từ các views sau:",
+    "   - v_kpi_summary         → KPI cards",
+    "   - v_files_by_layer      → Bar chart files per layer",
+    "   - v_dashboard_storage   → Storage table",
+    "   - v_top_tables          → Top tables drilldown",
+    "   - v_pipeline_health_hourly → Line chart pipeline",
+    "   - v_delta_operations    → Operations timeline",
+    "   - v_small_files_tables  → Small files alert"
+  ],
+  "charts": [
+    {
+      "slice_name": "Total Files",
+      "viz_type": "big_number_total",
+      "datasource": "v_kpi_summary",
+      "params": {
+        "metric": {"label": "total_files", "expressionType": "SIMPLE", "column": {"column_name": "total_files"}, "aggregate": "MAX"},
+        "subheader": "Tổng số file toàn lakehouse",
+        "y_axis_format": ",.0f"
+      }
+    },
+    {
+      "slice_name": "Storage (TB)",
+      "viz_type": "big_number_total",
+      "datasource": "v_kpi_summary",
+      "params": {
+        "metric": {"label": "total_size_tb", "expressionType": "SIMPLE", "column": {"column_name": "total_size_tb"}, "aggregate": "MAX"},
+        "subheader": "Dung lượng đang dùng",
+        "y_axis_format": ".2f"
+      }
+    },
+    {
+      "slice_name": "Tables in Catalog",
+      "viz_type": "big_number_total",
+      "datasource": "v_kpi_summary",
+      "params": {
+        "metric": {"label": "total_tables", "expressionType": "SIMPLE", "column": {"column_name": "total_tables"}, "aggregate": "MAX"},
+        "subheader": "Delta tables trong Hive Metastore",
+        "y_axis_format": ",.0f"
+      }
+    },
+    {
+      "slice_name": "Pipeline Success Rate (24h)",
+      "viz_type": "big_number_total",
+      "datasource": "v_kpi_summary",
+      "params": {
+        "metric": {"label": "pipeline_success_rate_24h", "expressionType": "SIMPLE", "column": {"column_name": "pipeline_success_rate_24h"}, "aggregate": "MAX"},
+        "subheader": "% jobs thành công (24h)",
+        "y_axis_format": ".1f",
+        "conditional_formatting": [
+          {"operator": "<", "targetValue": 95, "colorScheme": "red"},
+          {"operator": ">=", "targetValue": 95, "colorScheme": "green"}
+        ]
+      }
+    },
+    {
+      "slice_name": "File Count by Layer",
+      "viz_type": "bar",
+      "datasource": "v_files_by_layer",
+      "params": {
+        "metrics": [{"label": "total_files", "expressionType": "SIMPLE", "column": {"column_name": "total_files"}, "aggregate": "SUM"}],
+        "groupby": ["layer"],
+        "color_scheme": "supersetColors",
+        "show_legend": true,
+        "y_axis_label": "File count",
+        "x_axis_label": "Layer"
+      }
+    },
+    {
+      "slice_name": "Storage (GB) by Layer",
+      "viz_type": "pie",
+      "datasource": "v_files_by_layer",
+      "params": {
+        "metric": {"label": "total_gb", "expressionType": "SIMPLE", "column": {"column_name": "total_gb"}, "aggregate": "SUM"},
+        "groupby": ["layer"],
+        "donut": true,
+        "show_legend": true,
+        "show_labels": true,
+        "label_type": "key_percent"
+      }
+    },
+    {
+      "slice_name": "Small Files % by Layer",
+      "viz_type": "bar",
+      "datasource": "v_files_by_layer",
+      "params": {
+        "metrics": [{"label": "small_pct", "expressionType": "SIMPLE", "column": {"column_name": "small_pct"}, "aggregate": "MAX"}],
+        "groupby": ["layer"],
+        "y_axis_label": "Small files %",
+        "color_scheme": "orangeToGreen"
+      }
+    },
+    {
+      "slice_name": "Top 20 Tables by Size",
+      "viz_type": "table",
+      "datasource": "v_top_tables",
+      "params": {
+        "columns": ["database_name", "table_name", "layer", "size_gb", "num_files", "avg_file_mb", "num_partitions", "delta_version", "last_modified"],
+        "page_length": 20,
+        "include_search": true,
+        "column_config": {
+          "size_gb":     {"d3NumberFormat": ".3f"},
+          "avg_file_mb": {"d3NumberFormat": ".1f"}
+        }
+      }
+    },
+    {
+      "slice_name": "Pipeline Success Rate — Trend (7 days)",
+      "viz_type": "line",
+      "datasource": "v_pipeline_health_hourly",
+      "params": {
+        "metrics": [{"label": "success_rate_pct", "expressionType": "SIMPLE", "column": {"column_name": "success_rate_pct"}, "aggregate": "AVG"}],
+        "groupby": [],
+        "x_axis": "hour",
+        "y_axis_bounds": [0, 100],
+        "y_axis_label": "Success rate %",
+        "show_markers": true,
+        "color_scheme": "greenBlue"
+      }
+    },
+    {
+      "slice_name": "Delta Operations by Day",
+      "viz_type": "bar",
+      "datasource": "v_delta_operations",
+      "params": {
+        "metrics": [{"label": "op_count", "expressionType": "SIMPLE", "column": {"column_name": "op_count"}, "aggregate": "SUM"}],
+        "groupby": ["operation"],
+        "x_axis": "op_day",
+        "stack_bars": true,
+        "color_scheme": "supersetColors"
+      }
+    },
+    {
+      "slice_name": "Small Files Alert",
+      "viz_type": "table",
+      "datasource": "v_small_files_tables",
+      "params": {
+        "columns": ["database_name", "table_name", "layer", "num_files", "size_gb", "avg_file_mb", "status"],
+        "filters": [{"col": "status", "op": "==", "val": "⚠️ small_files"}],
+        "page_length": 25,
+        "include_search": true,
+        "column_config": {
+          "status": {"colorPositiveNegative": true}
+        }
+      }
+    }
+  ],
+  "layout": {
+    "HEADER": {
+      "id": "HEADER",
+      "type": "HEADER",
+      "meta": {"text": "🌊 FlumenData Lakehouse Dashboard"}
+    },
+    "ROW_KPI": {
+      "type": "ROW",
+      "children": ["Total Files", "Storage (TB)", "Tables in Catalog", "Pipeline Success Rate (24h)"]
+    },
+    "ROW_STORAGE": {
+      "type": "ROW",
+      "children": ["File Count by Layer", "Storage (GB) by Layer", "Small Files % by Layer"]
+    },
+    "ROW_TABLES": {
+      "type": "ROW",
+      "children": ["Top 20 Tables by Size"]
+    },
+    "ROW_PIPELINE": {
+      "type": "ROW",
+      "children": ["Pipeline Success Rate — Trend (7 days)", "Delta Operations by Day"]
+    },
+    "ROW_ALERTS": {
+      "type": "ROW",
+      "children": ["Small Files Alert"]
+    }
+  }
+}

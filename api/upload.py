@@ -1,10 +1,8 @@
-# Run: python -m uvicorn upload:app --host 0.0.0.0 --port 8000
-
-from fastapi import FastAPI, UploadFile, File
+from fastapi import APIRouter, UploadFile, File
 import boto3
 from botocore.client import Config
 
-app = FastAPI(root_path="/datalake")
+router = APIRouter()
 
 s3 = boto3.client(
     "s3",
@@ -17,18 +15,10 @@ s3 = boto3.client(
 
 BUCKET = "lakehouse"
 
-@app.post("/upload/")
+@router.post("/upload/")
 async def upload_file(file: UploadFile = File(...)):
-    key = f"raw/{file.filename}"
+    key = f"bronze/{file.filename}"
 
-    s3.upload_fileobj(
-        file.file,
-        BUCKET,
-        key
-    )
+    s3.upload_fileobj(file.file, BUCKET, key)
 
-    return {
-        "message": "Upload successful",
-        "bucket": BUCKET,
-        "key": key
-    }
+    return {"message": "Upload successful", "bucket": BUCKET, "key": key}
