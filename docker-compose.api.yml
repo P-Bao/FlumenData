@@ -1,6 +1,8 @@
 services:
   upload-api:
-    build: ./api
+    build:
+      context: ./api
+      dockerfile: ../docker/api.Dockerfile
     container_name: flumen_api
     restart: unless-stopped
 
